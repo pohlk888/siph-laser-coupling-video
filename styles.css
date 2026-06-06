@@ -287,7 +287,7 @@ header {
 .canvas-values-bar {
   position: absolute;
   right: 18px;
-  bottom: 132px;
+  bottom: 94px;
   z-index: 5;
   width: min(68%, 900px);
   margin-top: 0;
@@ -386,7 +386,7 @@ body.light-theme .canvas-value-item {
     left: 18px;
     right: 18px;
     width: auto;
-    bottom: 168px;
+    bottom: 130px;
   }
 
   .canvas-values-grid {
@@ -398,7 +398,7 @@ body.light-theme .canvas-value-item {
   .canvas-values-bar {
     left: 10px;
     right: 10px;
-    bottom: 164px;
+    bottom: 126px;
     padding: 6px 7px;
   }
 
@@ -407,6 +407,7 @@ body.light-theme .canvas-value-item {
   }
 
   .canvas-value-item {
+    width: auto;
     padding: 4px 5px;
   }
 }
@@ -1410,4 +1411,497 @@ body.light-theme .canvas-info-stack .narration-card {
 
 .narration-body {
   padding-bottom: 12px;
+}
+
+
+/* ==========================================================================
+   Responsive Layout Stabilization
+   ========================================================================== */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (min-width: 1440px) {
+  .dashboard {
+    grid-template-columns: minmax(0, 1fr) minmax(420px, 500px);
+  }
+
+  .canvas-values-bar {
+    width: min(64%, 980px);
+  }
+}
+
+@media (max-width: 1180px) {
+  body {
+    overflow-y: auto;
+  }
+
+  header {
+    padding: 10px 16px;
+  }
+
+  .header-container {
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+    padding: 12px 14px 16px;
+    gap: 14px;
+    overflow: visible;
+  }
+
+  .stage-section {
+    height: auto;
+    min-height: 0;
+  }
+
+  .stage-wrapper {
+    min-height: 520px;
+    height: min(68vh, 720px);
+  }
+
+  .narration-section,
+  .narration-panel {
+    height: auto;
+    min-height: 0;
+  }
+
+  .narration-body {
+    overflow: visible;
+  }
+
+  .params-scroll-container {
+    max-height: min(520px, 62vh);
+  }
+
+  .player-bar {
+    position: relative;
+    height: auto;
+    padding: 12px 14px;
+  }
+
+  .player-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .player-media-controls,
+  .player-settings {
+    justify-content: center;
+  }
+
+  .player-scrubber-wrapper {
+    width: 100%;
+  }
+
+  .timeline-ticks {
+    gap: 6px;
+  }
+
+  .timeline-ticks .tick {
+    width: auto;
+    flex: 1 1 0;
+    font-size: 0.58rem;
+  }
+}
+
+@media (max-width: 820px) {
+  body {
+    font-size: 14px;
+  }
+
+  header {
+    padding: 10px 12px;
+  }
+
+  .header-container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .logo-group {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .logo-svg {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+  }
+
+  .title-text h1 {
+    font-size: clamp(1rem, 6vw, 1.55rem);
+    line-height: 1.15;
+    max-width: min(78vw, 420px);
+    overflow-wrap: anywhere;
+  }
+
+  .title-text h2 {
+    font-size: clamp(0.72rem, 3.5vw, 0.94rem);
+    line-height: 1.32;
+    max-width: min(78vw, 430px);
+  }
+
+  .controls-panel {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .control-btn {
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    flex: 0 0 auto;
+  }
+
+  .reset-btn {
+    min-width: 106px;
+  }
+
+  .dashboard {
+    padding: 10px;
+  }
+
+  .stage-wrapper {
+    height: min(72vh, 620px);
+    min-height: 460px;
+  }
+
+  .canvas-info-stack {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    gap: 6px;
+  }
+
+  .canvas-formula-panel {
+    max-height: 90px;
+    padding: 8px 9px;
+  }
+
+  .canvas-formula-panel h4 {
+    font-size: 0.54rem;
+    margin-bottom: 4px;
+  }
+
+  .canvas-formula-panel .formula-expression {
+    font-size: 0.58rem;
+    padding: 6px 7px;
+    margin-bottom: 4px;
+  }
+
+  .canvas-formula-panel .formula-desc {
+    font-size: 0.58rem;
+    -webkit-line-clamp: 1;
+  }
+
+  .canvas-info-stack .narration-card {
+    padding: 8px 9px;
+  }
+
+  .canvas-info-stack .voice-badge {
+    font-size: 0.52rem;
+  }
+
+  .canvas-info-stack .narrative-text {
+    font-size: 0.58rem;
+    line-height: 1.28;
+    -webkit-line-clamp: 2;
+  }
+
+  .canvas-values-bar {
+    left: 10px;
+    right: 10px;
+    bottom: 36px;
+    width: auto;
+    padding: 6px;
+  }
+
+  .canvas-values-title {
+    font-size: 0.62rem;
+    margin-bottom: 4px;
+  }
+
+  .canvas-values-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .canvas-value-item {
+    padding: 4px 5px;
+  }
+
+  .canvas-value-label,
+  .canvas-value-label.zh {
+    font-size: 0.5rem;
+    line-height: 1.05;
+  }
+
+  .canvas-value-text {
+    font-size: 0.58rem;
+    line-height: 1.08;
+  }
+
+  .label-step-anchor {
+    max-width: calc(100vw - 46px);
+    font-size: 0.64rem;
+    padding: 6px 8px;
+    white-space: normal;
+  }
+
+  .step-nav-bar {
+    padding: 10px;
+    gap: 6px;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .step-nav-btn {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    font-size: 0.72rem;
+  }
+
+  .narration-body {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .narrative-header h3 {
+    font-size: 1rem;
+  }
+
+  .params-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .params-scroll-container {
+    max-height: 420px;
+    padding-right: 6px;
+  }
+
+  .param-card {
+    padding: 6px 8px;
+  }
+
+  .player-settings {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 520px) {
+  body {
+    font-size: 13px;
+  }
+
+  header {
+    padding: 8px 10px;
+  }
+
+  .logo-svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .title-text h1 {
+    font-size: clamp(1.08rem, 7vw, 1.45rem);
+    max-width: calc(100vw - 58px);
+  }
+
+  .title-text h2 {
+    font-size: 0.76rem;
+    max-width: calc(100vw - 58px);
+  }
+
+  .control-btn {
+    min-height: 32px;
+    padding: 5px 8px;
+    font-size: 0.66rem;
+  }
+
+  .reset-btn {
+    min-width: 96px;
+  }
+
+  .stage-wrapper {
+    height: 560px;
+    min-height: 560px;
+  }
+
+  .canvas-info-stack {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+  }
+
+  .canvas-formula-panel {
+    max-height: 78px;
+  }
+
+  .canvas-info-stack .narration-card {
+    max-height: 86px;
+    overflow: hidden;
+  }
+
+  .canvas-values-bar {
+    bottom: 34px;
+    max-height: 126px;
+    overflow: hidden;
+  }
+
+  .canvas-values-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .canvas-values-title {
+    font-size: 0.58rem;
+  }
+
+  .canvas-value-label,
+  .canvas-value-label.zh {
+    font-size: 0.45rem;
+  }
+
+  .canvas-value-text {
+    font-size: 0.54rem;
+  }
+
+  .stage-overlay-labels {
+    left: 10px;
+    bottom: 12px;
+    right: 10px;
+  }
+
+  .label-step-anchor {
+    display: inline-block;
+    max-width: 100%;
+    font-size: 0.58rem;
+    line-height: 1.25;
+  }
+
+  .player-bar {
+    padding: 10px;
+  }
+
+  .player-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn-main-play {
+    width: 44px;
+    height: 44px;
+  }
+
+  .timeline-ticks {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 5px;
+    font-size: 0.52rem;
+  }
+
+  .timeline-ticks .tick,
+  .timeline-ticks .tick:first-child,
+  .timeline-ticks .tick:last-child {
+    text-align: center;
+  }
+
+  .player-settings {
+    justify-content: stretch;
+  }
+
+  .setting-group {
+    flex: 1 1 130px;
+  }
+
+  .player-select {
+    width: 100%;
+    font-size: 0.7rem;
+  }
+
+  .params-scroll-container {
+    max-height: 360px;
+  }
+}
+
+@media (max-width: 380px) {
+  .stage-wrapper {
+    height: 520px;
+    min-height: 520px;
+  }
+
+  .canvas-values-bar {
+    bottom: 28px;
+    max-height: 116px;
+  }
+
+  .canvas-value-item {
+    width: auto;
+    padding: 3px 4px;
+  }
+
+  .canvas-value-label,
+  .canvas-value-label.zh {
+    font-size: 0.4rem;
+  }
+
+  .canvas-value-text {
+    font-size: 0.48rem;
+  }
+}
+
+
+/* Side-by-side canvas info cards */
+.canvas-info-stack {
+  left: auto;
+  right: 16px;
+  width: min(68%, 900px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.canvas-info-stack .formula-container,
+.canvas-info-stack .narration-card {
+  min-width: 0;
+  height: 100%;
+}
+
+.canvas-info-stack .narration-card {
+  max-height: 104px;
+  overflow: hidden;
+}
+
+@media (max-width: 1180px) {
+  .canvas-info-stack {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .canvas-info-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-info-stack .narration-card {
+    max-height: 86px;
+  }
 }

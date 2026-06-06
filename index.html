@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPH Laser Coupling: Grating Coupler & Adiabatic Mode Transformation</title>
+  <meta name="description" content="An interactive, animated educational webpage explaining the 7-step process of transmitting a 1310 nm laser through a grating coupler and adiabatic taper into a silicon waveguide.">
+  
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css?v=226">
+</head>
+<body class="dark-theme lang-en">
+  <!-- Glowing Background decorative element -->
+  <div class="glow-accent"></div>
+
+  <!-- Header Section -->
+  <header>
+    <div class="header-container">
+      <div class="logo-group">
+        <svg viewBox="0 0 100 100" width="40" height="40" class="logo-svg">
+          <defs>
+            <linearGradient id="laser-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ff1744" />
+              <stop offset="60%" stop-color="#ff9100" />
+              <stop offset="100%" stop-color="#00e676" />
+            </linearGradient>
+          </defs>
+          <!-- Grating coupler lines -->
+          <rect x="20" y="45" width="60" height="10" fill="url(#laser-grad)" rx="2"/>
+          <line x1="30" y1="45" x2="30" y2="55" stroke="#080f1d" stroke-width="2"/>
+          <line x1="40" y1="45" x2="40" y2="55" stroke="#080f1d" stroke-width="2"/>
+          <line x1="50" y1="45" x2="50" y2="55" stroke="#080f1d" stroke-width="2"/>
+          <line x1="60" y1="45" x2="60" y2="55" stroke="#080f1d" stroke-width="2"/>
+          <line x1="70" y1="45" x2="70" y2="55" stroke="#080f1d" stroke-width="2"/>
+          <!-- Wave passing through -->
+          <path d="M10,20 Q25,60 45,50 T80,50" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <div class="title-text">
+          <h1 class="en">SiPH LASER COUPLING EXPLANATION</h1>
+          <h1 class="zh">矽光子雷射耦合傳輸原理</h1>
+          <h2 class="en">Grating Coupler & Adiabatic Mode Transformation</h2>
+          <h2 class="zh">光柵耦合器與絕熱模態轉換過程</h2>
+        </div>
+      </div>
+      
+      <div class="controls-panel">
+        <button id="lang-toggle-btn" class="control-btn" aria-label="Toggle Language">
+          <span class="lang-en-only">中文</span>
+          <span class="lang-zh-only">EN</span>
+        </button>
+        <button id="global-reset-btn" class="control-btn reset-btn" aria-label="Global Reset Parameters">
+          <span class="en">Global Reset</span>
+          <span class="zh">全域重設</span>
+        </button>
+        <button id="theme-toggle-btn" class="control-btn" aria-label="Toggle Theme">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard layout -->
+  <main class="dashboard">
+    <!-- Left column: Visual Player Stage -->
+    <section class="stage-section">
+      <div class="stage-wrapper glass-panel">
+        <!-- Interactive Camera Target viewport -->
+        <div class="canvas-container">
+          <canvas id="video-canvas"></canvas>
+          <div class="stage-overlay-labels">
+            <span class="label-step-anchor" id="anchor-step-label">STEP 01: TLS Tunable Laser Source</span>
+          </div>
+          <div class="canvas-info-stack">
+            <div class="formula-container canvas-formula-panel" id="formula-box">
+              <h4 class="en">Physics & Mathematics</h4>
+              <h4 class="zh">物理與數學原理</h4>
+              <div class="formula-expression" id="formula-math">
+                f = c / &lambda;₀ = 3.00 &times; 10⁸ / 1310 &times; 10⁻⁹ = 228.9 THz
+              </div>
+              <p class="formula-desc" id="formula-explanation">
+                The frequency of light is determined strictly by its source and remains constant across all media.
+              </p>
+            </div>
+            <div class="narration-card">
+              <div class="voice-badge">
+                <span class="voice-icon">🔊</span>
+                <span class="en">NARRATION PLAYBACK</span>
+                <span class="zh">旁白播放文本</span>
+              </div>
+              <p class="narrative-text" id="step-narrative">
+                The continuous wave (CW) laser operates at a wavelength of 1310 nm in free space. The frequency remains constant at 228.9 THz as the light propagates.
+              </p>
+            </div>
+          </div>
+<!-- Live calculated values inside the animation window -->
+<div class="canvas-values-bar glass-panel" aria-label="Live calculation values">
+  <div class="canvas-values-title">
+    <span class="en">Live Calculations</span>
+    <span class="zh">即時運算值</span>
+  </div>
+  <div class="canvas-values-grid">
+    <div class="canvas-value-item">
+      <span class="canvas-value-label en">Frequency (f)</span>
+      <span class="canvas-value-label zh">頻率 (f)</span>
+      <b id="param-frequency" class="canvas-value-text">228.9 THz</b>
+    </div>
+    <div class="canvas-value-item">
+      <span class="canvas-value-label en">Phase Velocity (v)</span>
+      <span class="canvas-value-label zh">相速度 (v)</span>
+      <b id="param-velocity" class="canvas-value-text">3.00 &times; 10⁸ m/s</b>
+    </div>
+    <div class="canvas-value-item">
+      <span class="canvas-value-label en">Refractive Index (n)</span>
+      <span class="canvas-value-label zh">折射率 (n)</span>
+      <b id="param-index" class="canvas-value-text">1.00 (Vacuum)</b>
+    </div>
+    <div class="canvas-value-item" id="coupling-efficiency-tile">
+      <span class="canvas-value-label en">Coupling Efficiency (&eta;)</span>
+      <span class="canvas-value-label zh">耦合效率 (&eta;)</span>
+      <b id="param-efficiency" class="canvas-value-text">N/A</b>
+    </div>
+    <div class="canvas-value-item" id="alignment-loss-tile">
+      <span class="canvas-value-label en">Alignment Loss</span>
+      <span class="canvas-value-label zh">對準損耗</span>
+      <b id="param-alignment-loss" class="canvas-value-text">N/A</b>
+    </div>
+    <div class="canvas-value-item">
+      <span class="canvas-value-label en">Diffraction Order (m)</span>
+      <span class="canvas-value-label zh">繞射光級數 (m)</span>
+      <b id="param-order" class="canvas-value-text">N/A</b>
+    </div>
+  </div>
+</div>
+
+                    <!-- Zoom HUD marker box -->
+          <div class="hud-box" id="hud-camera-box"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right column: Narration Narrative panel -->
+    <section class="narration-section">
+      <div class="narration-panel glass-panel">
+        
+        <!-- Step Navigation Progress Bar -->
+        <div class="step-nav-bar">
+          <button class="step-nav-btn active" data-step="1">1</button>
+          <button class="step-nav-btn" data-step="2">2</button>
+          <button class="step-nav-btn" data-step="3">3</button>
+          <button class="step-nav-btn" data-step="4">4</button>
+          <button class="step-nav-btn" data-step="5">5</button>
+          <button class="step-nav-btn" data-step="6">6</button>
+          <button class="step-nav-btn" data-step="7">7</button>
+          <button class="step-nav-btn" data-step="8">8</button>
+          <button class="step-nav-btn" data-step="9">9</button>
+        </div>
+
+        <!-- Narration Description details -->
+        <div class="narration-body">
+          <header class="narrative-header">
+            <span class="step-index-badge">STEP 01</span>
+            <h3 id="step-title">TLS Tunable Laser Source / TLS 可調諧雷射光源</h3>
+          </header>
+          
+          <!-- Parameter table -->
+          <div class="section-divider"></div>
+          
+          <div class="params-container">
+            <h4 class="en">Parameters</h4>
+            <h4 class="zh">導波物理參數</h4>
+            <div class="params-scroll-container">
+              <div class="params-grid">
+                <div class="param-card slider-card enlarged-20">
+                  <span class="param-lbl en">Wavelength (&lambda;₀)</span>
+                  <span class="param-lbl zh">波長 (&lambda;₀)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-wl-slider" min="1260" max="1360" step="1" value="1310" style="flex-grow: 1; accent-color: var(--accent-laser); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-wl-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 38px; text-align: right;">1310nm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card enlarged-20">
+                  <span class="param-lbl en">Laser Power (P_in)</span>
+                  <span class="param-lbl zh">雷射功率 (P_in)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-power-slider" min="0" max="20" step="1" value="10" style="flex-grow: 1; accent-color: var(--accent-laser); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-power-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 34px; text-align: right;">10.0mW</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card enlarged-20">
+                  <span class="param-lbl en">TLS Linewidth (&Delta;&nu;)</span>
+                  <span class="param-lbl zh">TLS 線寬 (&Delta;&nu;)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-linewidth-slider" min="0.1" max="10" step="0.1" value="1" style="flex-grow: 1; accent-color: var(--accent-info); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-linewidth-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 48px; text-align: right;">1.0MHz</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card enlarged-20">
+                  <span class="param-lbl en">Tuning Speed</span>
+                  <span class="param-lbl zh">調諧速度</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-sweep-speed-slider" min="1" max="100" step="1" value="20" style="flex-grow: 1; accent-color: var(--accent-info); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-sweep-speed-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 56px; text-align: right;">20nm/s</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card tls-mode-card">
+                  <span class="param-lbl en">TLS Sweep Mode</span>
+                  <span class="param-lbl zh">TLS 掃描模式</span>
+                  <select id="param-sweep-mode-select" class="player-select tls-mode-select">
+                    <option value="off" selected>Off / 固定</option>
+                    <option value="continuous">Continuous / 連續</option>
+                    <option value="step">Step / 階躍</option>
+                  </select>
+                </div>
+                <div class="param-card slider-card enlarged-20" id="card-pol-angle" style="display: none;">
+                  <span class="param-lbl en">Polarisation Angle (&phi;)</span>
+                  <span class="param-lbl zh">偏振角度 (&phi;)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-pol-slider" min="0" max="90" step="1" value="0" style="flex-grow: 1; accent-color: var(--accent-laser); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-pol-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 44px; text-align: right;">0° (TE)</span>
+                  </div>
+                </div>
+
+                <div class="param-card slider-card" id="card-tilt-angle" style="display: none;">
+                  <span class="param-lbl en">Fiber Tilt Angle (&theta;_in)</span>
+                  <span class="param-lbl zh">光纖入射角 (&theta;_in)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-tilt-slider" min="0" max="20" step="1" value="10" style="flex-grow: 1; accent-color: var(--accent-laser); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-tilt-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 24px; text-align: right;">10°</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-lateral-offset" style="display: none;">
+                  <span class="param-lbl en">Lateral Offset (&Delta;x)</span>
+                  <span class="param-lbl zh">橫向偏移 (&Delta;x)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-offset-slider" min="-5" max="5" step="0.1" value="0" style="flex-grow: 1; accent-color: var(--accent-taper); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-offset-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 48px; text-align: right;">0.0µm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-fiber-gap" style="display: none;">
+                  <span class="param-lbl en">Fiber-Chip Gap (g)</span>
+                  <span class="param-lbl zh">光纖晶片間距 (g)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-gap-slider" min="0" max="10" step="0.1" value="3" style="flex-grow: 1; accent-color: var(--accent-taper); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-gap-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 48px; text-align: right;">3.0µm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-wg-width" style="display: none;">
+                  <span class="param-lbl en">Waveguide Width (W)</span>
+                  <span class="param-lbl zh">波導寬度 (W)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-wg-width-slider" min="400" max="600" step="10" value="500" style="flex-grow: 1; accent-color: var(--accent-guided); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-wg-width-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 36px; text-align: right;">500nm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-wg-height" style="display: none;">
+                  <span class="param-lbl en">Waveguide Height (H)</span>
+                  <span class="param-lbl zh">波導高度 (H)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-wg-height-slider" min="180" max="260" step="5" value="220" style="flex-grow: 1; accent-color: var(--accent-guided); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-wg-height-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 36px; text-align: right;">220nm</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Timeline player bar -->
+  <footer class="player-bar glass-panel">
+    <div class="player-container">
+      
+      <!-- Left side: media controls -->
+      <div class="player-media-controls">
+        <button class="player-btn" id="btn-rewind" title="Rewind to Step 1 (Home)">⏮</button>
+        <button class="player-btn" id="btn-step-prev" title="Previous Step (←)">◀</button>
+        <button class="player-btn btn-main-play" id="btn-play-pause" title="Play/Pause Video (Spacebar)">
+          <span class="play-icon">▶</span>
+          <span class="pause-icon" style="display:none;">⏸</span>
+        </button>
+        <button class="player-btn" id="btn-step-next" title="Next Step (→)">▶</button>
+      </div>
+
+      <!-- Center: scrubber slider and timestamps -->
+      <div class="player-scrubber-wrapper">
+        <input type="range" id="timeline-scrubber" min="1" max="9" step="1" value="1" aria-label="Explanation timeline scrubber">
+        <div class="timeline-ticks">
+          <span class="tick" data-step="1">1: Laser</span>
+          <span class="tick" data-step="2">2: Polarisation</span>
+          <span class="tick" data-step="3">3: Fiber</span>
+          <span class="tick" data-step="4">4: Interface</span>
+          <span class="tick" data-step="5">5: Grating</span>
+          <span class="tick" data-step="6">6: Taper</span>
+          <span class="tick" data-step="7">7: Waveguide</span>
+          <span class="tick" data-step="8">8: Devices</span>
+          <span class="tick" data-step="9">9: 3D Overview</span>
+        </div>
+      </div>
+
+      <!-- Right side: mode settings -->
+      <div class="player-settings">
+        <div class="setting-group">
+          <label for="play-mode-select" class="en">Play Mode</label>
+          <label for="play-mode-select" class="zh">播放模式</label>
+          <select id="play-mode-select" class="player-select">
+            <option value="movie" selected>Movie / 自動放映</option>
+            <option value="interactive">Study / 手動研究</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label for="play-speed" class="en">Speed</label>
+          <label for="play-speed" class="zh">速度</label>
+          <select id="play-speed" class="player-select">
+            <option value="slow">Slow</option>
+            <option value="normal" selected>Normal</option>
+            <option value="fast">Fast</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <script src="app.js?v=225"></script>
+</body>
+</html>

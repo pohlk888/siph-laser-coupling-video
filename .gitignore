@@ -1,0 +1,11 @@
+# Local logs and temporary files
+*.log
+chrome*.log
+server*.log
+
+# Local archives / debug helpers
+*.zip
+server_debug.py
+
+# macOS
+.DS_Store

@@ -11,6 +11,9 @@
   const C_NM_PER_PS = 299792.458;
   const GRATING_PITCH_NM = 578;
   const BASE_NEFF = 2.44;
+  const REFERENCE_TEMPERATURE_C = 25;
+  const SI_THERMO_OPTIC_COEFF = 1.86e-4;
+  const SI_MODE_CONFINEMENT = 0.85;
   const TLS_MIN_WAVELENGTH = 1260;
   const TLS_MAX_WAVELENGTH = 1360;
   const TLS_STEP_NM = 5;
@@ -28,6 +31,14 @@
     tlsSweepDirection: 1,
     tlsStepAccumulator: 0,
     polarisationAngle: 0,
+    gratingPitch: GRATING_PITCH_NM,
+    fabricationPitchError: 0,
+    fabricationWidthError: 0,
+    fabricationHeightError: 0,
+    baseReflectionPercent: 0.1,
+    propagationLengthCm: 1.0,
+    propagationLossDbCm: 0.2,
+    chipTemperature: REFERENCE_TEMPERATURE_C,
     waveguideWidth: 500,
     waveguideHeight: 220
   };
@@ -51,6 +62,14 @@
     tlsSweepDirection: 1,
     tlsStepAccumulator: 0,
     polarisationAngle: 0, // Polarization angle in degrees (0 = TE, 90 = TM)
+    gratingPitch: GRATING_PITCH_NM, // Grating pitch in nm (Step 5)
+    fabricationPitchError: 0, // Grating pitch fabrication error in nm
+    fabricationWidthError: 0, // Waveguide width fabrication error in nm
+    fabricationHeightError: 0, // Waveguide height fabrication error in nm
+    baseReflectionPercent: 0.1, // Base interface reflection in percent
+    propagationLengthCm: 1.0, // Silicon waveguide propagation length in cm
+    propagationLossDbCm: 0.2, // Silicon waveguide propagation loss in dB/cm
+    chipTemperature: REFERENCE_TEMPERATURE_C, // Chip temperature in Celsius (Step 5/6)
     waveguideWidth: 500, // Waveguide Width in nm (Step 6)
     waveguideHeight: 220, // Waveguide Height in nm (Step 6)
     
@@ -365,33 +384,76 @@
     };
   }
 
+  function getBackReflectionMetrics() {
+    const baseR = Math.max(0.000001, state.baseReflectionPercent / 100);
+    const tiltPenalty = 1 + Math.pow((state.fiberTiltAngle - 10) / 5, 2);
+    const pitchPenalty = 1 + Math.pow(state.fabricationPitchError / 5, 2);
+    const gapPenalty = 1 + Math.pow((state.fiberGap - 3) / 3, 2);
+    const reflection = Math.min(0.2, baseR * tiltPenalty * pitchPenalty * gapPenalty);
+    const returnLossDb = -10 * Math.log10(reflection);
+    const transmissionFactor = Math.max(0, 1 - reflection);
+    const reflectedPowerMw = state.laserPower * reflection;
+    return { reflection, returnLossDb, transmissionFactor, reflectedPowerMw };
+  }
+
+  function getPropagationLossMetrics() {
+    const lossDb = state.propagationLossDbCm * state.propagationLengthCm;
+    const propagationFactor = Math.pow(10, -lossDb / 10);
+    return { lossDb, propagationFactor };
+  }
+
   // Helper to calculate wavelength, tilt angle, alignment, and waveguide dimensions combined coupling efficiency
-  function getCouplingEfficiency() {
+  function getCouplingEfficiencyComponents() {
     // 1. Calculate required matching index for the grating coupler based on tilt angle and wavelength
     const sinTheta = Math.sin(state.fiberTiltAngle * Math.PI / 180);
-    const targetNeff = 1.00 * sinTheta + state.laserWavelength / GRATING_PITCH_NM;
+    const actualPitch = state.gratingPitch + state.fabricationPitchError;
+    const targetNeff = 1.00 * sinTheta + state.laserWavelength / actualPitch;
     
     // 2. Calculate actual effective index of the silicon waveguide core
     const actualNeff = getWaveguideEffectiveIndex();
     
     // 3. Compute phase mismatch and resulting coupling efficiency drop
     const dNeff = actualNeff - targetNeff;
-    const baseEff = Math.exp(-Math.pow(dNeff, 2) / 0.015); // tolerance width factor 0.015 for realistic coupling curve
+    const phaseFactor = Math.exp(-Math.pow(dNeff, 2) / 0.015); // tolerance width factor 0.015 for realistic coupling curve
     
     // 4. Incorporate polarisation projection and fiber alignment tolerance.
     const phiRad = state.polarisationAngle * Math.PI / 180;
-    const polFactor = Math.pow(Math.cos(phiRad), 2);
+    const polarisationFactor = Math.pow(Math.cos(phiRad), 2);
     const alignment = getAlignmentMetrics();
+    const reflection = getBackReflectionMetrics();
+    const propagation = getPropagationLossMetrics();
+    const backReflectionFactor = state.step >= 4 ? reflection.transmissionFactor : 1;
+    const propagationFactor = state.step >= 7 ? propagation.propagationFactor : 1;
+    const totalFactor = phaseFactor * polarisationFactor * alignment.alignmentFactor * backReflectionFactor * propagationFactor;
     
-    return baseEff * polFactor * alignment.alignmentFactor;
+    return {
+      targetNeff,
+      actualNeff,
+      dNeff,
+      phaseFactor,
+      polarisationFactor,
+      alignmentFactor: alignment.alignmentFactor,
+      backReflectionFactor,
+      propagationFactor,
+      totalFactor
+    };
+  }
+
+  function getCouplingEfficiency() {
+    return getCouplingEfficiencyComponents().totalFactor;
   }
 
   // Helper to calculate effective index n_eff dynamically based on waveguide width and height
+  function getThermalEffectiveIndexShift() {
+    const deltaT = state.chipTemperature - REFERENCE_TEMPERATURE_C;
+    return SI_MODE_CONFINEMENT * SI_THERMO_OPTIC_COEFF * deltaT;
+  }
+
   function getWaveguideEffectiveIndex() {
-    // Base n_eff is BASE_NEFF for 500nm width and 220nm height
-    const dw = state.waveguideWidth - 500;
-    const dh = state.waveguideHeight - 220;
-    const neff = BASE_NEFF + 0.0015 * dw + 0.003 * dh;
+    // Base n_eff is BASE_NEFF for 500nm width, 220nm height, and 25°C chip temperature.
+    const dw = state.waveguideWidth + state.fabricationWidthError - 500;
+    const dh = state.waveguideHeight + state.fabricationHeightError - 220;
+    const neff = BASE_NEFF + 0.0015 * dw + 0.003 * dh + getThermalEffectiveIndexShift();
     return Math.max(1.5, Math.min(3.4, neff));
   }
 
@@ -649,7 +711,7 @@
   const LABELS_DATA = [
     { step: 1, textEn: 'TLS Tunable Laser Source', textZh: 'TLS 可調諧雷射光源', x: -100, y: 46, align: 'center' },
     { step: 2, textEn: 'Polarisation PLC', textZh: 'PLC 偏振控制器', x: 65, y: 72, align: 'center' },
-    { step: 3, textEn: 'Silica Optical Fiber', textZh: '單模光纖傳輸', x: 180, y: 210, align: 'center' },
+    { step: 3, textEn: 'Silica Optical Fiber', textZh: '單模光纖傳輸', x: 180, y: 66, align: 'center' },
     { step: 5, textEn: 'Grating Coupler', textZh: '光柵耦合器', x: 360, y: 210, align: 'center' },
     { step: 6, textEn: 'Adiabatic Taper', textZh: '絕熱漸變區 (Taper)', x: 500, y: 210, align: 'center' },
     { step: 7, textEn: 'Silicon Waveguide Core', textZh: '矽波導單模纖芯', x: 650, y: 210, align: 'center' }
@@ -691,6 +753,23 @@
     const offsetVal = document.getElementById('param-offset-val');
     const gapSlider = document.getElementById('param-gap-slider');
     const gapVal = document.getElementById('param-gap-val');
+    const gratingPitchSlider = document.getElementById('param-grating-pitch-slider');
+    const gratingPitchVal = document.getElementById('param-grating-pitch-val');
+    const temperatureSlider = document.getElementById('param-temperature-slider');
+    const temperatureVal = document.getElementById('param-temperature-val');
+    const fabPitchSlider = document.getElementById('param-fab-pitch-slider');
+    const fabPitchVal = document.getElementById('param-fab-pitch-val');
+    const fabWidthSlider = document.getElementById('param-fab-width-slider');
+    const fabWidthVal = document.getElementById('param-fab-width-val');
+    const fabHeightSlider = document.getElementById('param-fab-height-slider');
+    const fabHeightVal = document.getElementById('param-fab-height-val');
+    const baseReflectionSlider = document.getElementById('param-base-reflection-slider');
+    const baseReflectionVal = document.getElementById('param-base-reflection-val');
+    const propagationLengthSlider = document.getElementById('param-prop-length-slider');
+    const propagationLengthVal = document.getElementById('param-prop-length-val');
+    const propagationLossSlider = document.getElementById('param-prop-loss-slider');
+    const propagationLossVal = document.getElementById('param-prop-loss-val');
+
     const wgWidthSlider = document.getElementById('param-wg-width-slider');
     const wgWidthVal = document.getElementById('param-wg-width-val');
     const wgHeightSlider = document.getElementById('param-wg-height-slider');
@@ -754,6 +833,54 @@
     gapSlider.addEventListener('input', (e) => {
       state.fiberGap = parseFloat(e.target.value);
       gapVal.innerText = `${state.fiberGap.toFixed(1)}µm`;
+      updateLabelsDisplay();
+    });
+
+    gratingPitchSlider.addEventListener('input', (e) => {
+      state.gratingPitch = parseInt(e.target.value, 10);
+      gratingPitchVal.innerText = `${state.gratingPitch}nm`;
+      updateLabelsDisplay();
+    });
+
+    temperatureSlider.addEventListener('input', (e) => {
+      state.chipTemperature = parseInt(e.target.value, 10);
+      temperatureVal.innerText = `${state.chipTemperature}°C`;
+      updateLabelsDisplay();
+    });
+
+    fabPitchSlider.addEventListener('input', (e) => {
+      state.fabricationPitchError = parseFloat(e.target.value);
+      fabPitchVal.innerText = `${state.fabricationPitchError.toFixed(1)}nm`;
+      updateLabelsDisplay();
+    });
+
+    fabWidthSlider.addEventListener('input', (e) => {
+      state.fabricationWidthError = parseFloat(e.target.value);
+      fabWidthVal.innerText = `${state.fabricationWidthError.toFixed(1)}nm`;
+      updateLabelsDisplay();
+    });
+
+    fabHeightSlider.addEventListener('input', (e) => {
+      state.fabricationHeightError = parseFloat(e.target.value);
+      fabHeightVal.innerText = `${state.fabricationHeightError.toFixed(1)}nm`;
+      updateLabelsDisplay();
+    });
+
+    baseReflectionSlider.addEventListener('input', (e) => {
+      state.baseReflectionPercent = parseFloat(e.target.value);
+      baseReflectionVal.innerText = `${state.baseReflectionPercent.toFixed(2)}%`;
+      updateLabelsDisplay();
+    });
+
+    propagationLengthSlider.addEventListener('input', (e) => {
+      state.propagationLengthCm = parseFloat(e.target.value);
+      propagationLengthVal.innerText = `${state.propagationLengthCm.toFixed(1)}cm`;
+      updateLabelsDisplay();
+    });
+
+    propagationLossSlider.addEventListener('input', (e) => {
+      state.propagationLossDbCm = parseFloat(e.target.value);
+      propagationLossVal.innerText = `${state.propagationLossDbCm.toFixed(1)}dB/cm`;
       updateLabelsDisplay();
     });
 
@@ -935,6 +1062,46 @@
     gapVal.innerText = `${state.fiberGap.toFixed(1)}µm`;
 
     // Manage slider values and visibility
+    const gratingPitchSlider = document.getElementById('param-grating-pitch-slider');
+    const gratingPitchVal = document.getElementById('param-grating-pitch-val');
+    gratingPitchSlider.value = state.gratingPitch;
+    gratingPitchVal.innerText = `${state.gratingPitch}nm`;
+
+    const temperatureSlider = document.getElementById('param-temperature-slider');
+    const temperatureVal = document.getElementById('param-temperature-val');
+    temperatureSlider.value = state.chipTemperature;
+    temperatureVal.innerText = `${state.chipTemperature}°C`;
+
+    const fabPitchSlider = document.getElementById('param-fab-pitch-slider');
+    const fabPitchVal = document.getElementById('param-fab-pitch-val');
+    fabPitchSlider.value = state.fabricationPitchError;
+    fabPitchVal.innerText = `${state.fabricationPitchError.toFixed(1)}nm`;
+
+    const fabWidthSlider = document.getElementById('param-fab-width-slider');
+    const fabWidthVal = document.getElementById('param-fab-width-val');
+    fabWidthSlider.value = state.fabricationWidthError;
+    fabWidthVal.innerText = `${state.fabricationWidthError.toFixed(1)}nm`;
+
+    const fabHeightSlider = document.getElementById('param-fab-height-slider');
+    const fabHeightVal = document.getElementById('param-fab-height-val');
+    fabHeightSlider.value = state.fabricationHeightError;
+    fabHeightVal.innerText = `${state.fabricationHeightError.toFixed(1)}nm`;
+
+    const baseReflectionSlider = document.getElementById('param-base-reflection-slider');
+    const baseReflectionVal = document.getElementById('param-base-reflection-val');
+    baseReflectionSlider.value = state.baseReflectionPercent;
+    baseReflectionVal.innerText = `${state.baseReflectionPercent.toFixed(2)}%`;
+
+    const propagationLengthSlider = document.getElementById('param-prop-length-slider');
+    const propagationLengthVal = document.getElementById('param-prop-length-val');
+    propagationLengthSlider.value = state.propagationLengthCm;
+    propagationLengthVal.innerText = `${state.propagationLengthCm.toFixed(1)}cm`;
+
+    const propagationLossSlider = document.getElementById('param-prop-loss-slider');
+    const propagationLossVal = document.getElementById('param-prop-loss-val');
+    propagationLossSlider.value = state.propagationLossDbCm;
+    propagationLossVal.innerText = `${state.propagationLossDbCm.toFixed(1)}dB/cm`;
+
     const wgWidthSlider = document.getElementById('param-wg-width-slider');
     const wgWidthVal = document.getElementById('param-wg-width-val');
     wgWidthSlider.value = state.waveguideWidth;
@@ -977,66 +1144,122 @@
       cardGap.style.display = 'none';
     }
 
+    const cardGratingPitch = document.getElementById('card-grating-pitch');
+    const cardTemperature = document.getElementById('card-temperature');
+    const cardFabPitch = document.getElementById('card-fab-pitch');
+    const cardFabWidth = document.getElementById('card-fab-width');
+    const cardFabHeight = document.getElementById('card-fab-height');
+    const cardBaseReflection = document.getElementById('card-base-reflection');
+    const cardPropLength = document.getElementById('card-prop-length');
+    const cardPropLoss = document.getElementById('card-prop-loss');
     const cardWgWidth = document.getElementById('card-wg-width');
     const cardWgHeight = document.getElementById('card-wg-height');
-    if (state.step >= 7) { // shifted from 6 to 7
+    if (state.step >= 5) {
+      cardGratingPitch.style.display = 'flex';
+      cardTemperature.style.display = 'flex';
+      cardFabPitch.style.display = 'flex';
+      cardFabWidth.style.display = 'flex';
+      cardFabHeight.style.display = 'flex';
       cardWgWidth.style.display = 'flex';
       cardWgHeight.style.display = 'flex';
     } else {
+      cardGratingPitch.style.display = 'none';
+      cardTemperature.style.display = 'none';
+      cardFabPitch.style.display = 'none';
+      cardFabWidth.style.display = 'none';
+      cardFabHeight.style.display = 'none';
       cardWgWidth.style.display = 'none';
       cardWgHeight.style.display = 'none';
     }
 
-    // Dynamic Parameter calculations
-    // 1. Frequency (constant c / lambda)
-    const freq = (C_NM_PER_PS / state.laserWavelength).toFixed(1);
-    document.getElementById('param-frequency').innerText = `${freq} THz`;
-
-    // 2. Phase Velocity (c/n)
-    let velocityText;
-    if (state.step <= 5) { // shifted from 4 to 5
-      velocityText = '3.00 × 10⁸ m/s';
-    } else if (state.step === 6) { // shifted from 5 to 6
-      velocityText = state.language === 'en' ? 'Decreasing' : '漸減';
-    } else {
-      const neff = getWaveguideEffectiveIndex();
-      const v = (C / neff / 1e8).toFixed(2);
-      velocityText = `${v} × 10⁸ m/s`;
-    }
-    document.getElementById('param-velocity').innerText = velocityText;
-
-    // 3. Refractive Index
-    let indexText;
-    if (state.step === 1) {
-      indexText = state.language === 'en' ? '1.00 (Vacuum)' : '1.00 (真空)';
-    } else if (state.step === 2 || state.step === 3) {
-      indexText = state.language === 'en' ? '1.45 (Silica core)' : '1.45 (二氧化矽纖芯)';
-    } else if (state.step === 4) {
-      indexText = state.language === 'en' ? '1.00 (Air output / Cladding gap)' : '1.00 (空氣輸出 / 包層空隙)';
-    } else if (state.step === 5) {
-      indexText = state.language === 'en' ? 'Frequency constant' : '頻率保持恆定';
-    } else if (state.step === 6) {
-      indexText = state.language === 'en' ? 'n_eff smoothly increases' : 'n_eff 漸增';
-    } else {
-      const neff = getWaveguideEffectiveIndex();
-      indexText = `n_eff ≈ ${neff.toFixed(2)}`;
-    }
-    document.getElementById('param-index').innerText = indexText;
-
-    // 4. Coupling Efficiency
-    let effText = '';
-    let couplingEfficiencyPercent = null;
     if (state.step >= 4) {
-      const eff = getCouplingEfficiency();
-      couplingEfficiencyPercent = eff * 100;
-      effText = `${couplingEfficiencyPercent.toFixed(1)}%`;
+      cardBaseReflection.style.display = 'flex';
     } else {
-      effText = state.language === 'en' ? 'N/A' : '無';
+      cardBaseReflection.style.display = 'none';
     }
-    document.getElementById('param-efficiency').innerText = effText;
-    const efficiencyTile = document.getElementById('coupling-efficiency-tile');
-    if (efficiencyTile) {
-      efficiencyTile.classList.toggle('calculation-warning', couplingEfficiencyPercent !== null && couplingEfficiencyPercent < 90);
+
+    if (state.step >= 7) {
+      cardPropLength.style.display = 'flex';
+      cardPropLoss.style.display = 'flex';
+    } else {
+      cardPropLength.style.display = 'none';
+      cardPropLoss.style.display = 'none';
+    }
+
+    // Dynamic Parameter calculations
+    // 1. Coupling efficiency component tiles
+    const efficiencyComponents = getCouplingEfficiencyComponents();
+    const phaseEfficiencyEl = document.getElementById('param-phase-efficiency');
+    const polarisationEfficiencyEl = document.getElementById('param-polarisation-efficiency');
+    const alignmentEfficiencyEl = document.getElementById('param-alignment-efficiency');
+    const backReflectionEfficiencyEl = document.getElementById('param-backreflection-efficiency');
+    const returnLossEl = document.getElementById('param-return-loss');
+    const propagationEfficiencyEl = document.getElementById('param-propagation-efficiency');
+    const totalEfficiencyEl = document.getElementById('param-total-efficiency');
+    const phaseEfficiencyTile = document.getElementById('phase-efficiency-tile');
+    const polarisationEfficiencyTile = document.getElementById('polarisation-efficiency-tile');
+    const alignmentEfficiencyTile = document.getElementById('alignment-efficiency-tile');
+    const backReflectionEfficiencyTile = document.getElementById('backreflection-efficiency-tile');
+    const returnLossTile = document.getElementById('return-loss-tile');
+    const propagationEfficiencyTile = document.getElementById('propagation-efficiency-tile');
+    const totalEfficiencyTile = document.getElementById('total-coupling-efficiency-tile');
+    const emptyText = state.language === 'en' ? 'N/A' : '無';
+
+    const phaseEfficiencyPercent = state.step >= 5 ? efficiencyComponents.phaseFactor * 100 : null;
+    const polarisationEfficiencyPercent = state.step >= 2 ? efficiencyComponents.polarisationFactor * 100 : null;
+    const alignmentEfficiencyPercent = state.step >= 4 ? efficiencyComponents.alignmentFactor * 100 : null;
+
+    if (phaseEfficiencyEl) {
+      phaseEfficiencyEl.innerText = phaseEfficiencyPercent !== null ? `${phaseEfficiencyPercent.toFixed(1)}%` : emptyText;
+    }
+    if (phaseEfficiencyTile) {
+      phaseEfficiencyTile.classList.toggle('calculation-warning', phaseEfficiencyPercent !== null && phaseEfficiencyPercent < 80);
+    }
+    if (polarisationEfficiencyEl) {
+      polarisationEfficiencyEl.innerText = polarisationEfficiencyPercent !== null ? `${polarisationEfficiencyPercent.toFixed(1)}%` : emptyText;
+    }
+    if (polarisationEfficiencyTile) {
+      polarisationEfficiencyTile.classList.toggle('calculation-warning', polarisationEfficiencyPercent !== null && polarisationEfficiencyPercent < 90);
+    }
+    if (alignmentEfficiencyEl) {
+      alignmentEfficiencyEl.innerText = alignmentEfficiencyPercent !== null ? `${alignmentEfficiencyPercent.toFixed(1)}%` : emptyText;
+    }
+    if (alignmentEfficiencyTile) {
+      alignmentEfficiencyTile.classList.toggle('calculation-warning', alignmentEfficiencyPercent !== null && alignmentEfficiencyPercent < 70);
+    }
+    const reflectionMetrics = getBackReflectionMetrics();
+    const propagationMetrics = getPropagationLossMetrics();
+    const returnLossDb = state.step >= 4 ? reflectionMetrics.returnLossDb : null;
+    const backReflectionEfficiencyPercent = state.step >= 4 ? reflectionMetrics.transmissionFactor * 100 : null;
+    const propagationEfficiencyPercent = state.step >= 7 ? propagationMetrics.propagationFactor * 100 : null;
+
+    if (backReflectionEfficiencyEl) {
+      backReflectionEfficiencyEl.innerText = backReflectionEfficiencyPercent !== null ? `${backReflectionEfficiencyPercent.toFixed(2)}%` : emptyText;
+    }
+    if (backReflectionEfficiencyTile) {
+      backReflectionEfficiencyTile.classList.toggle('calculation-warning', backReflectionEfficiencyPercent !== null && backReflectionEfficiencyPercent < 99.9);
+    }
+
+    if (returnLossEl) {
+      returnLossEl.innerText = returnLossDb !== null ? `-${returnLossDb.toFixed(1)} dB` : emptyText;
+    }
+    if (returnLossTile) {
+      returnLossTile.classList.toggle('calculation-warning', returnLossDb !== null && returnLossDb < 30);
+    }
+
+    if (propagationEfficiencyEl) {
+      propagationEfficiencyEl.innerText = propagationEfficiencyPercent !== null ? `${propagationEfficiencyPercent.toFixed(1)}%` : emptyText;
+    }
+    if (propagationEfficiencyTile) {
+      propagationEfficiencyTile.classList.toggle('calculation-warning', propagationEfficiencyPercent !== null && propagationEfficiencyPercent < 60);
+    }
+
+    if (totalEfficiencyEl) {
+      const totalEfficiencyPercent = state.step >= 5 ? efficiencyComponents.totalFactor * 100 : null;
+      totalEfficiencyEl.innerText = totalEfficiencyPercent !== null ? `${totalEfficiencyPercent.toFixed(1)}%` : emptyText;
+      if (totalEfficiencyTile) {
+        totalEfficiencyTile.classList.toggle('calculation-warning', totalEfficiencyPercent !== null && totalEfficiencyPercent < 50);
+      }
     }
 
     const alignmentLossEl = document.getElementById('param-alignment-loss');
@@ -1055,13 +1278,6 @@
       alignmentLossTile.classList.toggle('calculation-warning', alignmentLossDb !== null && alignmentLossDb > 2);
     }
 
-
-    // 5. Diffraction Order
-    if (state.step >= 5) {
-      document.getElementById('param-order').innerText = state.language === 'en' ? 'm = -1 (Guided)' : 'm = -1 (導模傳導)';
-    } else {
-      document.getElementById('param-order').innerText = state.language === 'en' ? 'N/A' : '無';
-    }
 
     // Mathematical formula block & explanation
     updateStepMathAndFormulas();
@@ -1090,15 +1306,16 @@
     } else if (state.step === 5) {
       const theta = state.fiberTiltAngle;
       const sinTheta = Math.sin(theta * Math.PI / 180);
-      const targetNeff = (1.00 * sinTheta + wl / GRATING_PITCH_NM).toFixed(2);
+      const actualPitch = state.gratingPitch + state.fabricationPitchError;
+      const targetNeff = (1.00 * sinTheta + wl / actualPitch).toFixed(2);
       const eff = getCouplingEfficiency();
       const effPercent = (eff * 100).toFixed(1);
       
-      mathEl.innerHTML = `n<sub>eff</sub> = 1.00 &middot; sin(${theta}&deg;) - (-1) &middot; (${wl} / ${GRATING_PITCH_NM}) = ${targetNeff}`;
+      mathEl.innerHTML = `n<sub>eff</sub> = 1.00 &middot; sin(${theta}&deg;) - (-1) &middot; (${wl} / ${actualPitch.toFixed(1)}) = ${targetNeff}`;
       const alignment = getAlignmentMetrics();
       explEl.innerText = state.language === 'en'
-        ? `At θ_in = ${theta}°, Δx = ${state.lateralOffset.toFixed(1)} µm, and gap = ${state.fiberGap.toFixed(1)} µm, the target n_eff is ${targetNeff}. Alignment loss is ${alignment.alignmentLossDb.toFixed(2)} dB and coupling efficiency is ${effPercent}%.`
-        : `當 θ_in = ${theta}°、Δx = ${state.lateralOffset.toFixed(1)} µm、間距 = ${state.fiberGap.toFixed(1)} µm 時，目標 n_eff = ${targetNeff}。對準損耗為 ${alignment.alignmentLossDb.toFixed(2)} dB，耦合效率為 ${effPercent}%。`;
+        ? `At θ_in = ${theta}°, Δx = ${state.lateralOffset.toFixed(1)} µm, gap = ${state.fiberGap.toFixed(1)} µm, T = ${state.chipTemperature}°C, ΔΛ = ${state.fabricationPitchError.toFixed(1)} nm, ΔW = ${state.fabricationWidthError.toFixed(1)} nm, and ΔH = ${state.fabricationHeightError.toFixed(1)} nm, the target n_eff is ${targetNeff}. Alignment loss is ${alignment.alignmentLossDb.toFixed(2)} dB and coupling efficiency is ${effPercent}%.`
+        : `當 θ_in = ${theta}°、Δx = ${state.lateralOffset.toFixed(1)} µm、間距 = ${state.fiberGap.toFixed(1)} µm、T = ${state.chipTemperature}°C、ΔΛ = ${state.fabricationPitchError.toFixed(1)} nm、ΔW = ${state.fabricationWidthError.toFixed(1)} nm、ΔH = ${state.fabricationHeightError.toFixed(1)} nm 時，目標 n_eff = ${targetNeff}。對準損耗為 ${alignment.alignmentLossDb.toFixed(2)} dB，耦合效率為 ${effPercent}%。`;
     } else if (state.step === 6) {
       const neff = getWaveguideEffectiveIndex();
       mathEl.innerHTML = `|dn<sub>eff</sub>/dz| &ll; 2&pi;/&lambda;₀, &nbsp; n<sub>eff</sub> target &rarr; ${neff.toFixed(2)}`;

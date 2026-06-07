@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css?v=231">
+  <link rel="stylesheet" href="styles.css?v=237">
 </head>
 <body class="dark-theme lang-en">
   <!-- Glowing Background decorative element -->
@@ -101,35 +101,45 @@
     <span class="zh">即時運算值</span>
   </div>
   <div class="canvas-values-grid">
-    <div class="canvas-value-item">
-      <span class="canvas-value-label en">Frequency (f)</span>
-      <span class="canvas-value-label zh">頻率 (f)</span>
-      <b id="param-frequency" class="canvas-value-text">228.9 THz</b>
+    <div class="canvas-value-item" id="backreflection-efficiency-tile">
+      <span class="canvas-value-label en">Back-Reflection Efficiency &gt;= 99.9% (&eta;_backreflection)</span>
+      <span class="canvas-value-label zh">背反射效率 &gt;= 99.9% (&eta;_backreflection)</span>
+      <b id="param-backreflection-efficiency" class="canvas-value-text">N/A</b>
     </div>
-    <div class="canvas-value-item">
-      <span class="canvas-value-label en">Phase Velocity (v)</span>
-      <span class="canvas-value-label zh">相速度 (v)</span>
-      <b id="param-velocity" class="canvas-value-text">3.00 &times; 10⁸ m/s</b>
-    </div>
-    <div class="canvas-value-item">
-      <span class="canvas-value-label en">Refractive Index (n)</span>
-      <span class="canvas-value-label zh">折射率 (n)</span>
-      <b id="param-index" class="canvas-value-text">1.00 (Vacuum)</b>
-    </div>
-    <div class="canvas-value-item" id="coupling-efficiency-tile">
-      <span class="canvas-value-label en">Coupling Efficiency (&eta;)</span>
-      <span class="canvas-value-label zh">耦合效率 (&eta;)</span>
-      <b id="param-efficiency" class="canvas-value-text">N/A</b>
+    <div class="canvas-value-item" id="return-loss-tile">
+      <span class="canvas-value-label en">Return Loss &gt;= -30 dB</span>
+      <span class="canvas-value-label zh">回波損耗 &gt;= -30 dB</span>
+      <b id="param-return-loss" class="canvas-value-text">N/A</b>
     </div>
     <div class="canvas-value-item" id="alignment-loss-tile">
-      <span class="canvas-value-label en">Alignment Loss</span>
-      <span class="canvas-value-label zh">對準損耗</span>
+      <span class="canvas-value-label en">Alignment Loss &le; 2 dB</span>
+      <span class="canvas-value-label zh">對準損耗 &le; 2 dB</span>
       <b id="param-alignment-loss" class="canvas-value-text">N/A</b>
     </div>
-    <div class="canvas-value-item">
-      <span class="canvas-value-label en">Diffraction Order (m)</span>
-      <span class="canvas-value-label zh">繞射光級數 (m)</span>
-      <b id="param-order" class="canvas-value-text">N/A</b>
+    <div class="canvas-value-item" id="phase-efficiency-tile">
+      <span class="canvas-value-label en">Phase Matching Efficiency &gt;= 80% (&eta;_phase)</span>
+      <span class="canvas-value-label zh">相位匹配效率 &gt;= 80% (&eta;_phase)</span>
+      <b id="param-phase-efficiency" class="canvas-value-text">N/A</b>
+    </div>
+    <div class="canvas-value-item" id="polarisation-efficiency-tile">
+      <span class="canvas-value-label en">Polarisation Efficiency &gt;= 90% (&eta;_polarisation)</span>
+      <span class="canvas-value-label zh">偏振效率 &gt;= 90% (&eta;_polarisation)</span>
+      <b id="param-polarisation-efficiency" class="canvas-value-text">N/A</b>
+    </div>
+    <div class="canvas-value-item" id="alignment-efficiency-tile">
+      <span class="canvas-value-label en">Alignment Efficiency &gt;= 70% (&eta;_alignment)</span>
+      <span class="canvas-value-label zh">對準效率 &gt;= 70% (&eta;_alignment)</span>
+      <b id="param-alignment-efficiency" class="canvas-value-text">N/A</b>
+    </div>
+    <div class="canvas-value-item" id="propagation-efficiency-tile">
+      <span class="canvas-value-label en">Propagation Efficiency &gt;= 60%</span>
+      <span class="canvas-value-label zh">傳播效率 &gt;= 60%</span>
+      <b id="param-propagation-efficiency" class="canvas-value-text">N/A</b>
+    </div>
+    <div class="canvas-value-item" id="total-coupling-efficiency-tile">
+      <span class="canvas-value-label en">Total Coupling Efficiency &gt;= 50%</span>
+      <span class="canvas-value-label zh">總耦合效率 &gt;= 50%</span>
+      <b id="param-total-efficiency" class="canvas-value-text">N/A</b>
     </div>
   </div>
 </div>
@@ -221,7 +231,6 @@
                     <span id="param-pol-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 44px; text-align: right;">0° (TE)</span>
                   </div>
                 </div>
-
                 <div class="param-card slider-card" id="card-tilt-angle" style="display: none;">
                   <span class="param-lbl en">Fiber Tilt Angle (&theta;_in)</span>
                   <span class="param-lbl zh">光纖入射角 (&theta;_in)</span>
@@ -246,6 +255,38 @@
                     <span id="param-gap-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 48px; text-align: right;">3.0µm</span>
                   </div>
                 </div>
+                <div class="param-card slider-card" id="card-base-reflection" style="display: none;">
+                  <span class="param-lbl en">Base Reflection (R₀)</span>
+                  <span class="param-lbl zh">基準反射 (R₀)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-base-reflection-slider" min="0.01" max="5" step="0.01" value="0.1" style="flex-grow: 1; accent-color: var(--accent-laser); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-base-reflection-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 48px; text-align: right;">0.10%</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-grating-pitch" style="display: none;">
+                  <span class="param-lbl en">Grating Pitch (&Lambda;)</span>
+                  <span class="param-lbl zh">光柵週期 (&Lambda;)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-grating-pitch-slider" min="540" max="620" step="1" value="578" style="flex-grow: 1; accent-color: var(--accent-taper); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-grating-pitch-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 42px; text-align: right;">578nm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-fab-pitch" style="display: none;">
+                  <span class="param-lbl en">Fab Pitch Error (&Delta;&Lambda;)</span>
+                  <span class="param-lbl zh">製程週期誤差 (&Delta;&Lambda;)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-fab-pitch-slider" min="-5" max="5" step="0.1" value="0" style="flex-grow: 1; accent-color: var(--accent-taper); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-fab-pitch-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 48px; text-align: right;">0.0nm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-temperature" style="display: none;">
+                  <span class="param-lbl en">Chip Temperature (T)</span>
+                  <span class="param-lbl zh">晶片溫度 (T)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-temperature-slider" min="0" max="100" step="1" value="25" style="flex-grow: 1; accent-color: var(--accent-info); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-temperature-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 36px; text-align: right;">25°C</span>
+                  </div>
+                </div>
                 <div class="param-card slider-card" id="card-wg-width" style="display: none;">
                   <span class="param-lbl en">Waveguide Width (W)</span>
                   <span class="param-lbl zh">波導寬度 (W)</span>
@@ -260,6 +301,38 @@
                   <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
                     <input type="range" id="param-wg-height-slider" min="180" max="260" step="5" value="220" style="flex-grow: 1; accent-color: var(--accent-guided); cursor: pointer; outline: none; background: var(--slider-track);">
                     <span id="param-wg-height-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 36px; text-align: right;">220nm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-fab-width" style="display: none;">
+                  <span class="param-lbl en">Fab Width Error (&Delta;W)</span>
+                  <span class="param-lbl zh">製程寬度誤差 (&Delta;W)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-fab-width-slider" min="-20" max="20" step="1" value="0" style="flex-grow: 1; accent-color: var(--accent-guided); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-fab-width-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 48px; text-align: right;">0.0nm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-fab-height" style="display: none;">
+                  <span class="param-lbl en">Fab Height Error (&Delta;H)</span>
+                  <span class="param-lbl zh">製程高度誤差 (&Delta;H)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-fab-height-slider" min="-10" max="10" step="1" value="0" style="flex-grow: 1; accent-color: var(--accent-guided); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-fab-height-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 48px; text-align: right;">0.0nm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-prop-length" style="display: none;">
+                  <span class="param-lbl en">Waveguide Length (L)</span>
+                  <span class="param-lbl zh">波導長度 (L)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-prop-length-slider" min="0.1" max="5" step="0.1" value="1" style="flex-grow: 1; accent-color: var(--accent-guided); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-prop-length-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 42px; text-align: right;">1.0cm</span>
+                  </div>
+                </div>
+                <div class="param-card slider-card" id="card-prop-loss" style="display: none;">
+                  <span class="param-lbl en">Propagation Loss (&alpha;)</span>
+                  <span class="param-lbl zh">傳播損耗 (&alpha;)</span>
+                  <div style="display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 2px;">
+                    <input type="range" id="param-prop-loss-slider" min="0.1" max="10" step="0.1" value="0.2" style="flex-grow: 1; accent-color: var(--accent-guided); cursor: pointer; outline: none; background: var(--slider-track);">
+                    <span id="param-prop-loss-val" style="font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; min-width: 62px; text-align: right;">0.2dB/cm</span>
                   </div>
                 </div>
               </div>
@@ -327,6 +400,6 @@
     </div>
   </footer>
 
-  <script src="app.js?v=225"></script>
+  <script src="app.js?v=237"></script>
 </body>
 </html>

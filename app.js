@@ -1453,6 +1453,28 @@
     requestAnimationFrame(animationLoop);
   }
 
+  function getResponsiveCameraTarget(targetData, width, height) {
+    let zoomScale = 1;
+    if (width < 430) zoomScale = 0.34;
+    else if (width < 620) zoomScale = 0.46;
+    else if (width < 820) zoomScale = 0.66;
+    else if (width < 1180) zoomScale = 0.82;
+
+    const verticalLift = width < 620 ? 22 : width < 820 ? 12 : 0;
+    const overlapSensitiveSteps = new Set([1, 4, 8]);
+    const overlapLift = width < 620 ? 62 : width < 820 ? 46 : width < 1180 ? 28 : 0;
+    const mobileLeftShift = width < 620 && targetData.camX < 0 ? 48 : 0;
+    const zoom = Math.max(0.68, targetData.zoom * zoomScale);
+    const camY = overlapSensitiveSteps.has(state.step) && overlapLift > 0
+      ? targetData.camY + overlapLift
+      : targetData.camY - verticalLift;
+    return {
+      camX: targetData.camX - mobileLeftShift,
+      camY,
+      zoom
+    };
+  }
+
   function animationLoop(timestamp) {
     const deltaMs = clamp(timestamp - lastFrameTime, 0, 100);
     lastFrameTime = timestamp;
@@ -1472,7 +1494,8 @@
 
 
     // 1. Camera Panning Interpolation (Smooth tracking of the step camera targets)
-    const targetData = STEPS_DATA[state.step];
+    const stepTarget = STEPS_DATA[state.step];
+    const targetData = getResponsiveCameraTarget(stepTarget, width, height);
     state.cameraX += (targetData.camX - state.cameraX) * 0.06;
     state.cameraY += (targetData.camY - state.cameraY) * 0.06;
     state.cameraZoom += (targetData.zoom - state.cameraZoom) * 0.06;
@@ -1505,8 +1528,8 @@
 
     ctx.restore();
 
-    // 8. Draw dynamic parameters display bar directly on the canvas (green text font)
-    drawHUDParameters(ctx, width, height);
+    // Bottom power/efficiency HUD disabled to keep the animation display clean.
+    // drawHUDParameters(ctx, width, height);
 
     // Increment wave phase offset over time for propagation
     state.wavePhase += 0.08;

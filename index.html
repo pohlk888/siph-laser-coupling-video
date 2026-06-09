@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css?v=244">
+  <link rel="stylesheet" href="styles.css?v=245">
 </head>
 <body class="dark-theme lang-en">
   <!-- Glowing Background decorative element -->
@@ -71,7 +71,7 @@
         <div class="canvas-container">
           <canvas id="video-canvas"></canvas>
           <div class="stage-overlay-labels">
-            <span class="label-step-anchor" id="anchor-step-label">STEP 01: TLS Tunable Laser Source</span>
+            <span class="label-step-anchor" id="anchor-step-label">INFO: Total Coupling Efficiency Summary</span>
           </div>
           <div class="canvas-info-stack">
             <div class="formula-container canvas-formula-panel" id="formula-box">
@@ -81,7 +81,7 @@
                 f = c / &lambda;₀ = 3.00 &times; 10⁸ / 1310 &times; 10⁻⁹ = 228.9 THz
               </div>
               <p class="formula-desc" id="formula-explanation">
-                The frequency of light is determined strictly by its source and remains constant across all media.
+                This 5-second opening infographic introduces the total coupling efficiency model.
               </p>
             </div>
             <div class="narration-card">
@@ -91,7 +91,7 @@
                 <span class="zh">旁白播放文本</span>
               </div>
               <p class="narrative-text" id="step-narrative">
-                The continuous wave (CW) laser operates at a wavelength of 1310 nm in free space. The frequency remains constant at 228.9 THz as the light propagates.
+                Opening summary: total coupling efficiency combines phase matching, polarisation, alignment, back-reflection transmission, and propagation retention.
               </p>
             </div>
           </div>
@@ -157,7 +157,8 @@
         
         <!-- Step Navigation Progress Bar -->
         <div class="step-nav-bar">
-          <button class="step-nav-btn active" data-step="1">1</button>
+          <button class="step-nav-btn active" data-step="0">Info</button>
+          <button class="step-nav-btn" data-step="1">1</button>
           <button class="step-nav-btn" data-step="2">2</button>
           <button class="step-nav-btn" data-step="3">3</button>
           <button class="step-nav-btn" data-step="4">4</button>
@@ -171,8 +172,8 @@
         <!-- Narration Description details -->
         <div class="narration-body">
           <header class="narrative-header">
-            <span class="step-index-badge">STEP 01</span>
-            <h3 id="step-title">TLS Tunable Laser Source / TLS 可調諧雷射光源</h3>
+            <span class="step-index-badge">INFO</span>
+            <h3 id="step-title">Total Coupling Efficiency Summary / 總耦合效率摘要</h3>
           </header>
           
           <!-- Parameter table -->
@@ -352,7 +353,7 @@
       
       <!-- Left side: media controls -->
       <div class="player-media-controls">
-        <button class="player-btn" id="btn-rewind" title="Rewind to Step 1 (Home)">⏮</button>
+        <button class="player-btn" id="btn-rewind" title="Rewind to Info (Home)">⏮</button>
         <button class="player-btn" id="btn-step-prev" title="Previous Step (←)">◀</button>
         <button class="player-btn btn-main-play" id="btn-play-pause" title="Play/Pause Video (Spacebar)">
           <span class="play-icon">▶</span>
@@ -363,8 +364,9 @@
 
       <!-- Center: scrubber slider and timestamps -->
       <div class="player-scrubber-wrapper">
-        <input type="range" id="timeline-scrubber" min="1" max="9" step="1" value="1" aria-label="Explanation timeline scrubber">
+        <input type="range" id="timeline-scrubber" min="0" max="9" step="1" value="0" aria-label="Explanation timeline scrubber">
         <div class="timeline-ticks">
+          <span class="tick" data-step="0">Info</span>
           <span class="tick" data-step="1">1: Laser</span>
           <span class="tick" data-step="2">2: Polarisation</span>
           <span class="tick" data-step="3">3: Fiber</span>
@@ -401,6 +403,6 @@
     </div>
   </footer>
 
-  <script src="app.js?v=244"></script>
+  <script src="app.js?v=245"></script>
 </body>
 </html>

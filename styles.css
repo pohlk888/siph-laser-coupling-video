@@ -2415,6 +2415,12 @@ body {
   display: none !important;
 }
 
+body[data-step="0"] .canvas-info-stack,
+body[data-step="0"] .canvas-values-bar,
+body[data-step="0"] .hud-box {
+  display: none !important;
+}
+
 
 /* UMC header logo */
 .umc-logo {

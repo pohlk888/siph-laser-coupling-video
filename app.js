@@ -5,7 +5,7 @@
 (() => {
   'use strict';
 
-  const STEP_MIN = 1;
+  const STEP_MIN = 0;
   const STEP_MAX = 9;
   const C = 299792458;
   const C_NM_PER_PS = 299792.458;
@@ -18,6 +18,11 @@
   const TLS_MAX_WAVELENGTH = 1360;
   const TLS_STEP_NM = 5;
   const STEP_DURATION_MS = 3200;
+  const INTRO_DURATION_MS = 5000;
+  const INTRO_INFOGRAPHIC_SRC = 'assets/total-coupling-efficiency-info.png';
+
+  const introInfographic = new Image();
+  introInfographic.src = INTRO_INFOGRAPHIC_SRC;
 
   const PARAMETER_DEFAULTS = {
     fiberTiltAngle: 10,
@@ -45,7 +50,7 @@
 
   // State Management
   const state = {
-    step: 1, // Active step (1 to 8)
+    step: 0, // Active step (0 intro, then 1 to 9)
     language: 'en', // 'en' or 'zh'
     theme: 'dark', // 'dark' or 'light'
     isPlaying: false,
@@ -148,6 +153,27 @@
 
   // Step Database containing narratives, metrics, formulas, and geometry anchors
   const STEPS_DATA = {
+    0: {
+      indexStr: 'INFO',
+      titleEn: 'Total Coupling Efficiency Summary',
+      titleZh: '總耦合效率摘要',
+      narrativeEn: 'Opening summary: the total coupling efficiency is the product of phase matching, polarisation, alignment, back-reflection transmission, and propagation retention.',
+      narrativeZh: '開場摘要：總耦合效率由相位匹配、偏振、對準、反射傳輸與傳播保留共同相乘決定。',
+      wavelength: 'System summary',
+      frequency: 'Model overview',
+      velocity: 'N/A',
+      index: 'N/A',
+      orderEn: 'N/A',
+      orderZh: '無',
+      tiltEn: 'N/A',
+      tiltZh: '無',
+      math: '&eta;<sub>total</sub> = &eta;<sub>phase</sub> &middot; &eta;<sub>pol</sub> &middot; &eta;<sub>align</sub> &middot; &eta;<sub>reflect</sub> &middot; &eta;<sub>prop</sub>',
+      explanationEn: 'This 5-second opening infographic introduces the variables, criteria, simulator ranges, and recommended values used by the coupling model.',
+      explanationZh: '此 5 秒開場資訊圖介紹耦合模型使用的變數、判準、模擬器範圍與建議值。',
+      camX: 455,
+      camY: 145,
+      zoom: 1
+    },
     1: {
       indexStr: 'STEP 01',
       titleEn: 'TLS Tunable Laser Source',
@@ -927,7 +953,7 @@
     });
 
     rewindBtn.addEventListener('click', () => {
-      setStep(1);
+      setStep(STEP_MIN);
     });
 
     // Timeline ticks click handlers
@@ -1387,7 +1413,8 @@
     if (!state.isPlaying) return;
     updateTlsSweep(deltaMs);
     const speed = SPEED_CONFIGS[speedSelect.value] || SPEED_CONFIGS.normal;
-    state.pulseProgress += (deltaMs / STEP_DURATION_MS) * speed;
+    const stepDuration = state.step === 0 ? INTRO_DURATION_MS : STEP_DURATION_MS;
+    state.pulseProgress += (deltaMs / stepDuration) * speed;
 
     while (state.pulseProgress >= 1) {
       state.pulseProgress -= 1;
@@ -1399,6 +1426,7 @@
   }
 
   function updateTlsSweep(deltaMs) {
+    if (state.step === 0) return;
     if (state.tlsSweepMode === 'off') return;
 
     const deltaNm = state.tlsSweepSpeed * deltaMs / 1000;
@@ -1490,6 +1518,14 @@
     const colors = THEME_COLORS[state.theme];
     ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, width, height);
+
+    if (state.step === 0) {
+      drawIntroInfographic(ctx, width, height);
+      state.wavePhase += 0.08;
+      requestAnimationFrame(animationLoop);
+      return;
+    }
+
     drawSceneDepthBackdrop(ctx, width, height);
 
 
@@ -1535,6 +1571,59 @@
     state.wavePhase += 0.08;
 
     requestAnimationFrame(animationLoop);
+  }
+
+  function drawIntroInfographic(ctx, width, height) {
+    const colors = THEME_COLORS[state.theme];
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, state.theme === 'dark' ? '#071226' : '#eef6ff');
+    gradient.addColorStop(1, state.theme === 'dark' ? '#10203d' : '#ffffff');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    if (!introInfographic.complete || !introInfographic.naturalWidth) {
+      ctx.fillStyle = state.theme === 'dark' ? '#dbeafe' : '#0b1437';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '700 22px "Outfit", "Noto Sans TC", sans-serif';
+      ctx.fillText(
+        state.language === 'en' ? 'Loading Total Coupling Efficiency infographic...' : '正在載入總耦合效率資訊圖...',
+        width / 2,
+        height / 2
+      );
+      return;
+    }
+
+    const margin = Math.max(12, Math.min(width, height) * 0.035);
+    const maxW = Math.max(1, width - margin * 2);
+    const maxH = Math.max(1, height - margin * 2);
+    const imgRatio = introInfographic.naturalWidth / introInfographic.naturalHeight;
+    const boxRatio = maxW / maxH;
+    const drawW = boxRatio > imgRatio ? maxH * imgRatio : maxW;
+    const drawH = drawW / imgRatio;
+    const x = (width - drawW) / 2;
+    const y = (height - drawH) / 2;
+
+    ctx.save();
+    ctx.shadowColor = state.theme === 'dark' ? 'rgba(0, 0, 0, 0.42)' : 'rgba(15, 23, 42, 0.18)';
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 8;
+    drawRoundRectPath(ctx, x - 6, y - 6, drawW + 12, drawH + 12, 10);
+    ctx.fillStyle = state.theme === 'dark' ? '#0f172a' : '#ffffff';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.drawImage(introInfographic, x, y, drawW, drawH);
+
+    const remaining = Math.max(0, INTRO_DURATION_MS * (1 - state.pulseProgress));
+    const holdText = state.language === 'en'
+      ? `Opening summary holds for ${Math.ceil(remaining / 1000)}s`
+      : `開場摘要停留 ${Math.ceil(remaining / 1000)} 秒`;
+    ctx.font = '700 12px "Outfit", "Noto Sans TC", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = colors.guided;
+    ctx.fillText(holdText, width - margin, height - margin * 0.55);
+    ctx.restore();
   }
 
   function drawHUDParameters(ctx, width, height) {

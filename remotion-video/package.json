@@ -1,0 +1,21 @@
+{
+  "name": "siph-remotion-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts SiPHCouplingVideo out/siph-coupling-demo.mp4",
+    "render:png": "remotion still src/index.ts SiPHCouplingVideo out/siph-coupling-demo.png --frame=120"
+  },
+  "dependencies": {
+    "@remotion/cli": "latest",
+    "remotion": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}

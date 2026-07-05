@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wealth Projection - September 2033</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5f6b7a;
+      --line: #d9e2ef;
+      --blue: #1f5f99;
+      --blue-soft: #e8f2fb;
+      --green-soft: #eaf7ef;
+      --amber-soft: #fff4db;
+      --shadow: 0 10px 30px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 32px auto 56px;
+    }
+
+    header {
+      margin-bottom: 24px;
+      padding: 28px 30px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    section {
+      margin-top: 24px;
+      padding: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 1.35rem;
+      letter-spacing: 0;
+      color: var(--blue);
+    }
+
+    p {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--blue-soft);
+      color: #183a5c;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td.amount,
+    th.amount {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: #fbfdff;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--green-soft);
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 650;
+    }
+
+    .card span {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .note {
+      padding: 16px 18px;
+      border-left: 5px solid #f2b84b;
+      border-radius: 8px;
+      background: var(--amber-soft);
+      color: #4b3b16;
+    }
+
+    @media (max-width: 860px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        margin-top: 16px;
+      }
+
+      header,
+      section {
+        padding: 18px;
+        border-radius: 10px;
+      }
+
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      main {
+        width: 100%;
+        margin: 0;
+      }
+
+      header,
+      section {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Wealth Projection - September 2033</h1>
+      <p class="subtitle">Projected retirement wealth snapshot using current cash, CPF, SRS, insurance, and property assumptions.</p>
+    </header>
+
+    <section>
+      <h2>📊 Projection Table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Wealth Component</th>
+              <th class="amount">Initial Capital - Jul 2026</th>
+              <th class="amount">Projected Value - Sep 2033</th>
+              <th>Growth Driver / Asset Details</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>UOB Cash + FD</td>
+              <td class="amount">$304.8K</td>
+              <td class="amount">~$864.8K</td>
+              <td>$250K + $54.8K + estimated savings of $80K/year x 7 years</td>
+              <td>Annual income ~$200K; expenditure including CPF/SRS reduction and top-ups ~$100K; target savings ~$80K/year</td>
+            </tr>
+            <tr>
+              <td>AIA Life Insurance</td>
+              <td class="amount">$58.0K</td>
+              <td class="amount">~$71.3K</td>
+              <td>3% annual growth from Oct 2026</td>
+              <td>If surrendered on 23 Oct 2026, then compounded at steady 3% p.a.</td>
+            </tr>
+            <tr>
+              <td>SRS S&amp;P 500 Investment</td>
+              <td class="amount">$0</td>
+              <td class="amount">$0</td>
+              <td>8% compounding assumption if deployed</td>
+              <td>Crash buying strategy; currently not deployed</td>
+            </tr>
+            <tr>
+              <td>Cash S&amp;P 500 Portfolio Investment</td>
+              <td class="amount">$0</td>
+              <td class="amount">$0</td>
+              <td>8% compounding assumption if deployed</td>
+              <td>Crash buying strategy; currently not deployed</td>
+            </tr>
+            <tr>
+              <td>SRS Account</td>
+              <td class="amount">$102.0K</td>
+              <td class="amount">~$209.1K / ~$210K</td>
+              <td>$102K + $15.3K/year x 7 years</td>
+              <td>Before any S&amp;P 500 investment gains</td>
+            </tr>
+            <tr>
+              <td>CPF OA Account</td>
+              <td class="amount">$77.0K</td>
+              <td class="amount">~$336.0K</td>
+              <td>Salary CPF contributions, OA interest, and assumed MA overflow to OA</td>
+              <td>Estimated OA at Sep 2033, age 56</td>
+            </tr>
+            <tr>
+              <td>CPF SA Account</td>
+              <td class="amount">$302.0K</td>
+              <td class="amount">~$467.0K by Sep 2032</td>
+              <td>Salary CPF contributions and 4% SA interest</td>
+              <td>SA closes when RA is created at age 55; do not count together with RA after age 55</td>
+            </tr>
+            <tr>
+              <td>CPF RA Account - after age 55</td>
+              <td class="amount">NA</td>
+              <td class="amount">~$542.0K to ~$575.0K</td>
+              <td>RA formed at Oct 2032, then grows with contributions and interest</td>
+              <td>Estimated ERS target at age 55 is ~$542K; estimated RA by Sep 2033 is ~$575K</td>
+            </tr>
+            <tr>
+              <td>CPF MA</td>
+              <td class="amount">$79.0K</td>
+              <td class="amount">~$111.2K</td>
+              <td>$79K compounded at 5% p.a. for 7 years</td>
+              <td>Used as inflation-style projection; actual MA mechanics may differ</td>
+            </tr>
+            <tr>
+              <td>Condo Asset</td>
+              <td class="amount">$1.3M</td>
+              <td class="amount">~$1.5M</td>
+              <td>Property value estimate</td>
+              <td>As of Jul 2026</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>📊 CPF Planning Notes</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th class="amount">Estimate</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Estimated ERS / RA target at age 55 in Oct 2032</td>
+              <td class="amount">~$542K</td>
+              <td>Planning estimate</td>
+            </tr>
+            <tr>
+              <td>Estimated SA at Sep 2032</td>
+              <td class="amount">~$467K</td>
+              <td>Before SA closure and RA formation</td>
+            </tr>
+            <tr>
+              <td>Estimated shortfall to meet $542K ERS</td>
+              <td class="amount">~$75K</td>
+              <td>Can be funded from OA or cash</td>
+            </tr>
+            <tr>
+              <td>Estimated RA by Sep 2033</td>
+              <td class="amount">~$575K</td>
+              <td>Includes work contribution and interest after RA creation</td>
+            </tr>
+            <tr>
+              <td>Estimated top-up amount from age 56 to 70</td>
+              <td class="amount">~$360K-$370K</td>
+              <td>To keep topping up RA/ERS limit annually</td>
+            </tr>
+            <tr>
+              <td>Estimated total RA funding need after age 55</td>
+              <td class="amount">~$435K</td>
+              <td>~$75K initial shortfall + ~$360K later top-ups</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>📊 Total Wealth Estimate - Sep 2033</h2>
+      <p>Use CPF RA instead of CPF SA for the Sep 2033 snapshot to avoid double-counting.</p>
+      <div class="cards">
+        <div class="card">
+          <strong>RA = $542K, Excluding Condo</strong>
+          <span>~$2.13M</span>
+        </div>
+        <div class="card">
+          <strong>RA = $542K, Including Condo</strong>
+          <span>~$3.63M</span>
+        </div>
+        <div class="card">
+          <strong>RA = $575K, Excluding Condo</strong>
+          <span>~$2.17M</span>
+        </div>
+        <div class="card">
+          <strong>RA = $575K, Including Condo</strong>
+          <span>~$3.67M</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>📊 Key Reminder</h2>
+      <p class="note">Do not count CPF SA and CPF RA together after age 55. The SA estimate is useful only as a pre-55 checkpoint before RA is formed.</p>
+    </section>
+  </main>
+</body>
+</html>

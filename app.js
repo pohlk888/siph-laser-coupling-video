@@ -1674,6 +1674,107 @@
   }
 
   // Draw static silicon photonics structure
+  function drawModeArrow(ctx, x1, y1, x2, y2, color, alpha = 1) {
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const head = 4;
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1.1;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 5;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - head * Math.cos(angle - Math.PI / 6), y2 - head * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - head * Math.cos(angle + Math.PI / 6), y2 - head * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTEModeMonitor(ctx) {
+    if (state.step !== 2) return;
+
+    const colors = THEME_COLORS[state.theme];
+    const phiRad = state.polarisationAngle * Math.PI / 180;
+    const tePower = Math.pow(Math.cos(phiRad), 2);
+    const tmPower = Math.pow(Math.sin(phiRad), 2);
+    const tePercent = tePower * 100;
+    const tmPercent = tmPower * 100;
+    const modeLabel = tePercent >= 90 ? 'TE MODE' : tmPercent >= 90 ? 'TM MODE' : 'MIXED TE/TM';
+    const modeColor = tePercent >= 90 ? colors.guided : tmPercent >= 90 ? '#ff3868' : '#ffd166';
+
+    const x = 18;
+    const y = 34;
+    const w = 116;
+    const h = 50;
+    const cx = x + 34;
+    const cy = y + 27;
+
+    ctx.save();
+    ctx.globalAlpha = 0.96;
+    ctx.fillStyle = state.theme === 'dark' ? 'rgba(5, 12, 27, 0.84)' : 'rgba(255, 255, 255, 0.88)';
+    ctx.strokeStyle = state.theme === 'dark' ? 'rgba(0, 255, 170, 0.42)' : 'rgba(5, 150, 105, 0.45)';
+    ctx.lineWidth = 0.9;
+    drawRoundRectPath(ctx, x, y, w, h, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    // Fiber cross-section and field axes.
+    const radial = ctx.createRadialGradient(cx - 4, cy - 4, 2, cx, cy, 21);
+    radial.addColorStop(0, state.theme === 'dark' ? 'rgba(226, 241, 255, 0.9)' : 'rgba(255,255,255,0.95)');
+    radial.addColorStop(0.46, state.theme === 'dark' ? 'rgba(96, 165, 250, 0.22)' : 'rgba(147,197,253,0.36)');
+    radial.addColorStop(1, state.theme === 'dark' ? 'rgba(15, 23, 42, 0.82)' : 'rgba(203,213,225,0.8)');
+    ctx.fillStyle = radial;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 19, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = state.theme === 'dark' ? 'rgba(186, 230, 253, 0.68)' : 'rgba(37, 99, 235, 0.42)';
+    ctx.stroke();
+    ctx.strokeStyle = state.theme === 'dark' ? 'rgba(255, 255, 255, 0.18)' : 'rgba(15, 23, 42, 0.2)';
+    ctx.setLineDash([2, 2]);
+    ctx.beginPath();
+    ctx.moveTo(cx - 19, cy);
+    ctx.lineTo(cx + 19, cy);
+    ctx.moveTo(cx, cy - 19);
+    ctx.lineTo(cx, cy + 19);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const teAlpha = 0.28 + tePower * 0.72;
+    const tmAlpha = 0.18 + tmPower * 0.72;
+    drawModeArrow(ctx, cx - 15, cy, cx + 15, cy, colors.guided, teAlpha);
+    drawModeArrow(ctx, cx + 15, cy, cx - 15, cy, colors.guided, teAlpha);
+    drawModeArrow(ctx, cx, cy + 15, cx, cy - 15, '#ff3868', tmAlpha);
+    drawModeArrow(ctx, cx, cy - 15, cx, cy + 15, '#ff3868', tmAlpha);
+
+    // Rotating actual electric-field vector.
+    const fieldLen = 17;
+    const ex = Math.cos(phiRad) * fieldLen;
+    const ey = Math.sin(phiRad) * fieldLen;
+    drawModeArrow(ctx, cx - ex, cy - ey, cx + ex, cy + ey, modeColor, 1);
+
+    ctx.shadowBlur = 0;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    ctx.font = '800 5.4px "Orbitron", sans-serif';
+    ctx.fillStyle = modeColor;
+    ctx.fillText(modeLabel, x + 61, y + 12);
+    ctx.font = '700 4.4px "JetBrains Mono", monospace';
+    ctx.fillStyle = state.theme === 'dark' ? '#e5e7eb' : '#0f172a';
+    ctx.fillText('TE E-field: ' + tePercent.toFixed(1) + '%', x + 61, y + 25);
+    ctx.fillText('TM leakage: ' + tmPercent.toFixed(1) + '%', x + 61, y + 36);
+    ctx.font = '700 3.8px "Orbitron", sans-serif';
+    ctx.fillStyle = state.theme === 'dark' ? 'rgba(226,232,240,0.75)' : 'rgba(15,23,42,0.72)';
+    ctx.fillText('horizontal = TE', x + 10, y + 44);
+    ctx.restore();
+  }
+
   function drawWaveguideStaticGeometry(ctx) {
     // Styling tags depending on theme mode
     const colors = THEME_COLORS[state.theme];
@@ -1787,7 +1888,7 @@
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 1.0;
     ctx.beginPath();
-    drawRoundRectPath(ctx, 835, 55, 120, 92, 6);
+    drawRoundRectPath(ctx, 815, 45, 160, 112, 6);
     ctx.shadowColor = 'rgba(0,0,0,0.42)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetX = 5;
@@ -1797,19 +1898,20 @@
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.stroke();
-    draw3DHighlight(ctx, 835, 55, 120, 92, 6);
+    draw3DHighlight(ctx, 815, 45, 160, 112, 6);
     
     // OPM Screen
     ctx.fillStyle = '#070814'; // black screen
-    ctx.fillRect(844, 64, 102, 46);
+    ctx.fillRect(826, 58, 138, 62);
     
     // OPM reading text (calculated input & coupled output power readout)
     const coupledPower = state.laserPower * eff;
     const pinText = `P_in  = ${state.laserPower.toFixed(2)} mW`;
+    const pinDbmText = `      = ${state.laserPower <= 0 ? '-Inf' : (10 * Math.log10(state.laserPower)).toFixed(2)} dBm`;
     const poutMwText = `P_out = ${coupledPower.toFixed(2)} mW`;
     const poutDbmText = `      = ${coupledPower <= 0 ? '-Inf' : (10 * Math.log10(coupledPower)).toFixed(2)} dBm`;
 
-    drawCenteredReadoutLines(ctx, [pinText, poutMwText, poutDbmText], 895, 87, 90, 7.4, 3.2, '#00ffaa');
+    drawCenteredReadoutLines(ctx, [pinText, pinDbmText, poutMwText, poutDbmText], 895, 89, 126, 6.9, 2.9, '#00ffaa');
     
     // OPM Labels & button indicators
     const opmLabelSize = getLargestCanvasFont(ctx, ['OPM'], 52, 7.5, 2.5, '800', '"Orbitron", sans-serif');
@@ -1817,18 +1919,18 @@
     ctx.font = `800 ${opmLabelSize}px "Orbitron", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('OPM', 895, 135);
+    ctx.fillText('OPM', 895, 145);
     
     // buttons
     ctx.fillStyle = '#475569';
     ctx.beginPath();
-    ctx.arc(862, 135, 2.0, 0, Math.PI * 2);
-    ctx.arc(874, 135, 2.0, 0, Math.PI * 2);
+    ctx.arc(862, 145, 2.0, 0, Math.PI * 2);
+    ctx.arc(874, 145, 2.0, 0, Math.PI * 2);
     ctx.fill();
     // red LED indicator
     ctx.fillStyle = state.isPlaying ? '#ff2a5f' : '#475569';
     ctx.beginPath();
-    ctx.arc(928, 135, 1.6, 0, Math.PI * 2);
+    ctx.arc(948, 145, 1.6, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -1838,7 +1940,7 @@
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 1.0;
     ctx.beginPath();
-    drawRoundRectPath(ctx, 835, 152, 120, 92, 6);
+    drawRoundRectPath(ctx, 815, 162, 160, 112, 6);
     ctx.shadowColor = 'rgba(0,0,0,0.42)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetX = 5;
@@ -1848,11 +1950,11 @@
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.stroke();
-    draw3DHighlight(ctx, 835, 152, 120, 92, 6);
+    draw3DHighlight(ctx, 815, 162, 160, 112, 6);
     
     // OSA Screen
     ctx.fillStyle = '#070814'; // black screen
-    ctx.fillRect(844, 161, 102, 46);
+    ctx.fillRect(826, 175, 138, 62);
 
     // Draw light dotted grid lines on screen
     ctx.save();
@@ -1861,22 +1963,22 @@
     ctx.setLineDash([1, 1.5]); // dotted style
     ctx.beginPath();
     // 3 Horizontal lines
-    for (let gy = 161 + 11.5; gy < 207; gy += 11.5) {
-      ctx.moveTo(844, gy);
-      ctx.lineTo(946, gy);
+    for (let gy = 175 + 12.4; gy < 237; gy += 12.4) {
+      ctx.moveTo(826, gy);
+      ctx.lineTo(964, gy);
     }
     // 5 Vertical lines
-    for (let gx = 844 + 17; gx < 946; gx += 17) {
-      ctx.moveTo(gx, 161);
-      ctx.lineTo(gx, 207);
+    for (let gx = 826 + 23; gx < 964; gx += 23) {
+      ctx.moveTo(gx, 175);
+      ctx.lineTo(gx, 237);
     }
     ctx.stroke();
     ctx.restore();
     
     // OSA Spectrum peak rendering (intensity scales with coupling efficiency and power, center shifts with wavelength)
-    const screenLeft = 848;
-    const screenRight = 942;
-    const screenBottom = 205;
+    const screenLeft = 830;
+    const screenRight = 960;
+    const screenBottom = 235;
     const peakCenter = 895 + (state.laserWavelength - 1310) * 0.36;
     const peakHeight = 32 * eff * (state.laserPower / 10);
     const linewidthSigma = 72 + state.tlsLinewidthMHz * 7;
@@ -1904,12 +2006,12 @@
     const peakFontSize = getLargestCanvasFont(ctx, [peakText], 76, 5.8, 3.2, '700', '"JetBrains Mono", monospace');
     ctx.font = `700 ${peakFontSize}px "JetBrains Mono", monospace`;
     ctx.textAlign = 'center';
-    ctx.fillText(peakText, peakCenter, 169);
+    ctx.fillText(peakText, peakCenter, 184);
 
     const noiseFontSize = getLargestCanvasFont(ctx, [noiseText], 72, 5.8, 3.2, '700', '"JetBrains Mono", monospace');
     ctx.font = `700 ${noiseFontSize}px "JetBrains Mono", monospace`;
     ctx.textAlign = 'left';
-    ctx.fillText(noiseText, screenLeft + 2, 197);
+    ctx.fillText(noiseText, screenLeft + 2, 227);
     ctx.restore();
     
     // OSA Labels & buttons
@@ -1918,18 +2020,18 @@
     ctx.font = `800 ${osaLabelSize}px "Orbitron", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('OSA', 895, 232);
+    ctx.fillText('OSA', 895, 262);
     
     // buttons
     ctx.fillStyle = '#475569';
     ctx.beginPath();
-    ctx.arc(862, 232, 2.0, 0, Math.PI * 2);
-    ctx.arc(874, 232, 2.0, 0, Math.PI * 2);
+    ctx.arc(862, 262, 2.0, 0, Math.PI * 2);
+    ctx.arc(874, 262, 2.0, 0, Math.PI * 2);
     ctx.fill();
     // green active LED indicator
     ctx.fillStyle = state.isPlaying ? '#00ffaa' : '#475569';
     ctx.beginPath();
-    ctx.arc(928, 232, 1.6, 0, Math.PI * 2);
+    ctx.arc(948, 262, 1.6, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -2129,6 +2231,8 @@
     
     ctx.restore();
     ctx.restore();
+
+    drawTEModeMonitor(ctx);
 
     // Laser Source / Fiber Array Unit (FAU) Block housing (Step 1)
     ctx.save();

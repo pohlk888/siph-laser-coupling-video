@@ -1775,6 +1775,110 @@
     ctx.restore();
   }
 
+
+  function drawTEFieldProfile(ctx, coreY1, coreY2) {
+    if (state.step !== 7) return;
+
+    const neff = getWaveguideEffectiveIndex();
+    const widthNm = state.waveguideWidth + state.fabricationWidthError;
+    const heightNm = state.waveguideHeight + state.fabricationHeightError;
+    const confinement = clamp(82 - Math.abs(widthNm - 500) * 0.018 - Math.abs(heightNm - 220) * 0.035, 62, 88);
+    const components = getCouplingEfficiencyComponents();
+    const modeQuality = clamp(Math.sqrt(components.phaseFactor * components.polarisationFactor * components.propagationFactor) * clamp(state.laserPower / 10, 0.35, 1.25), 0.06, 1);
+    const hotColor = modeQuality >= 0.78 ? '#ff2d00' : modeQuality >= 0.45 ? '#fff22b' : '#00d8ff';
+    const midColor = modeQuality >= 0.78 ? '#ffd12b' : modeQuality >= 0.45 ? '#42ff9e' : '#008cff';
+    const fieldAlpha = clamp(0.36 + modeQuality * 0.58, 0.36, 0.94);
+
+    // Compact monitor positioned away from the top Physics/Narration cards and the main waveguide.
+    const x = 430;
+    const y = 46;
+    const w = 244;
+    const h = 76;
+    const plotX = x + 14;
+    const plotY = y + 25;
+    const plotW = 126;
+    const plotH = 34;
+    const cx = plotX + plotW / 2;
+    const cy = plotY + plotH / 2;
+
+    ctx.save();
+    ctx.fillStyle = state.theme === 'dark' ? 'rgba(3, 10, 28, 0.94)' : 'rgba(245, 250, 255, 0.96)';
+    ctx.strokeStyle = 'rgba(125, 211, 252, 0.66)';
+    ctx.lineWidth = 0.9;
+    drawRoundRectPath(ctx, x, y, w, h, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '900 5.8px "Orbitron", sans-serif';
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText('TE0 FIELD PROFILE', x + 12, y + 12);
+
+    const bgGrad = ctx.createLinearGradient(plotX, plotY, plotX, plotY + plotH);
+    bgGrad.addColorStop(0, '#020617');
+    bgGrad.addColorStop(0.5, '#061d40');
+    bgGrad.addColorStop(1, '#020617');
+    ctx.fillStyle = bgGrad;
+    drawRoundRectPath(ctx, plotX, plotY, plotW, plotH, 3);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(147, 197, 253, 0.36)';
+    ctx.stroke();
+
+    const coreW = clamp(48 + (widthNm - 500) * 0.035, 38, 60);
+    const coreH = clamp(14 + (heightNm - 220) * 0.040, 10, 18);
+    const coreX = cx - coreW / 2;
+    const coreY = cy - coreH / 2;
+
+    const field = ctx.createRadialGradient(cx, cy, 1, cx, cy, 52);
+    field.addColorStop(0, hotColor);
+    field.addColorStop(0.30, midColor);
+    field.addColorStop(0.64, 'rgba(0, 220, 255, ' + (0.14 + fieldAlpha * 0.48).toFixed(3) + ')');
+    field.addColorStop(1, 'rgba(0, 56, 180, 0.02)');
+    ctx.globalAlpha = fieldAlpha;
+    ctx.fillStyle = field;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 58, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = 'rgba(226, 232, 240, 0.40)';
+    ctx.lineWidth = 0.55;
+    drawRoundRectPath(ctx, coreX, coreY, coreW, coreH, 2);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.shadowColor = '#4ade80';
+    ctx.shadowBlur = 3;
+    drawModeArrow(ctx, coreX + 6, cy, coreX + coreW - 6, cy, '#4ade80', 0.92);
+    ctx.restore();
+
+    const infoX = x + 158;
+    const infoY = y + 27;
+    ctx.textAlign = 'left';
+    ctx.font = '900 7.5px "Orbitron", sans-serif';
+    ctx.fillStyle = '#4ade80';
+    ctx.fillText('TE0', infoX, infoY);
+    ctx.font = '700 4.2px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText('field ' + (modeQuality * 100).toFixed(0) + '%', infoX, infoY + 14);
+    ctx.fillText('n_eff ' + neff.toFixed(2), infoX, infoY + 27);
+    ctx.fillText('conf. ' + confinement.toFixed(0) + '%', infoX, infoY + 40);
+
+    const barX = x + 14;
+    const barY = y + h - 12;
+    const barW = 126;
+    const grad = ctx.createLinearGradient(barX, barY, barX + barW, barY);
+    grad.addColorStop(0, '#0040c7');
+    grad.addColorStop(0.36, '#00d8ff');
+    grad.addColorStop(0.66, '#42ff9e');
+    grad.addColorStop(0.84, '#fff22b');
+    grad.addColorStop(1, '#ff2d00');
+    ctx.fillStyle = grad;
+    ctx.fillRect(barX, barY, barW, 4);
+    ctx.restore();
+  }
+
   function drawWaveguideStaticGeometry(ctx) {
     // Styling tags depending on theme mode
     const colors = THEME_COLORS[state.theme];
@@ -1855,6 +1959,7 @@
     // Waveguide Core (Silicon Core n = 3.48)
     // thin channel starting from 570 to splitter at 740
     drawExtrudedRect(ctx, 570, coreY1, 170, coreThickness, 8, 5, coreColor, state.theme === 'dark' ? '#172033' : '#3d4d62', state.theme === 'dark' ? '#64748b' : '#a3b3c5', borderColor);
+    drawTEFieldProfile(ctx, coreY1, coreY2);
 
     // Splitter port (Y-junction split to devices)
     const topBranchY1 = 112 - 2 * scaleH;

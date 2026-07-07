@@ -2572,3 +2572,243 @@ body[data-step="0"] .hud-box {
     bottom: 28px !important;
   }
 }
+
+
+/* Desktop landscape monitor layout */
+@media (min-width: 1200px) and (orientation: landscape) {
+  html,
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    flex: 0 0 auto;
+    padding: 10px 22px;
+  }
+
+  .header-container {
+    max-width: none;
+  }
+
+  .dashboard {
+    width: 100% !important;
+    max-width: none !important;
+    height: calc(100vh - 184px) !important;
+    min-height: 560px !important;
+    padding: 12px 18px 8px !important;
+    grid-template-columns: minmax(0, 1.9fr) minmax(360px, 0.72fr) !important;
+    gap: 14px !important;
+    overflow: hidden !important;
+  }
+
+  .stage-section,
+  .narration-section,
+  .stage-wrapper,
+  .narration-panel,
+  .canvas-container {
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  .stage-wrapper {
+    margin-bottom: 0 !important;
+  }
+
+  .canvas-container {
+    flex: 1 1 auto !important;
+  }
+
+  .canvas-info-stack {
+    top: 10px !important;
+    right: 12px !important;
+    width: min(42%, 520px) !important;
+  }
+
+  .canvas-info-stack .canvas-formula-panel {
+    max-height: 116px !important;
+    overflow: auto !important;
+  }
+
+  .canvas-values-bar {
+    left: 14px !important;
+    right: 14px !important;
+    bottom: 16px !important;
+    max-height: 118px !important;
+    padding: 7px 9px !important;
+  }
+
+  .canvas-values-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .canvas-value-item {
+    min-height: 38px !important;
+    padding: 5px 6px !important;
+  }
+
+  .canvas-value-label,
+  .canvas-value-label.zh {
+    font-size: 0.44rem !important;
+    line-height: 1.02 !important;
+  }
+
+  .canvas-value-text {
+    font-size: 0.55rem !important;
+  }
+
+  .narration-body {
+    min-height: 0 !important;
+    overflow: hidden !important;
+    padding: 14px 16px !important;
+  }
+
+  .params-scroll-container {
+    max-height: calc(100vh - 360px) !important;
+    min-height: 0 !important;
+  }
+
+  .params-grid {
+    grid-template-columns: 1fr !important;
+    gap: 5px !important;
+  }
+
+  .param-card {
+    padding: 5px 8px !important;
+    gap: 4px !important;
+  }
+
+  .player-bar {
+    flex: 0 0 auto !important;
+    width: calc(100% - 36px) !important;
+    min-height: 78px !important;
+    height: 78px !important;
+    margin: 8px auto 10px !important;
+    padding: 0 18px !important;
+  }
+
+  .player-container {
+    max-width: none !important;
+    gap: 16px !important;
+  }
+
+  .btn-main-play {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .player-btn {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .player-settings {
+    gap: 12px !important;
+  }
+
+  .player-select {
+    min-height: 30px !important;
+    padding: 5px 8px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .timeline-ticks {
+    font-size: 0.62rem !important;
+  }
+}
+
+@media (min-width: 1600px) and (orientation: landscape) {
+  .dashboard {
+    height: calc(100vh - 188px) !important;
+    min-height: 620px !important;
+    grid-template-columns: minmax(0, 2.05fr) minmax(430px, 0.72fr) !important;
+  }
+
+  .player-bar {
+    width: calc(100% - 48px) !important;
+  }
+}
+
+
+/* Live calculations simplified metrics */
+#backreflection-efficiency-tile,
+#return-loss-tile {
+  display: none !important;
+}
+
+.canvas-values-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+
+.canvas-value-item {
+  min-height: 54px !important;
+  padding: 8px 9px !important;
+}
+
+.canvas-value-label,
+.canvas-value-label.zh {
+  font-size: clamp(0.66rem, 0.84vw, 0.78rem) !important;
+  line-height: 1.12 !important;
+}
+
+.canvas-value-text {
+  font-size: clamp(0.82rem, 1vw, 0.96rem) !important;
+  line-height: 1.08 !important;
+}
+
+@media (min-width: 1200px) and (orientation: landscape) {
+  .canvas-values-bar {
+    max-height: 132px !important;
+  }
+
+  .canvas-values-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .canvas-value-item {
+    min-height: 54px !important;
+    padding: 8px 9px !important;
+  }
+
+  .canvas-value-label,
+  .canvas-value-label.zh {
+    font-size: 0.66rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .canvas-value-text {
+    font-size: 0.83rem !important;
+    line-height: 1.08 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .canvas-values-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .canvas-value-label,
+  .canvas-value-label.zh {
+    font-size: 0.58rem !important;
+  }
+
+  .canvas-value-text {
+    font-size: 0.72rem !important;
+  }
+}
+
+
+/* Live calculations tile order */
+#phase-efficiency-tile { order: 1; }
+#polarisation-efficiency-tile { order: 2; }
+#alignment-loss-tile { order: 3; }
+#alignment-efficiency-tile { order: 4; }
+#propagation-efficiency-tile { order: 5; }
+#total-coupling-efficiency-tile { order: 6; }
